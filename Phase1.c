@@ -3,7 +3,33 @@
 #include <math.h>
 
 #define N 10
-void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5]) // no need to do difficulty manager if we have here 
+
+int Ship_Placmentt(char grid[N][N], int row, int column, int length, char orientation[12])
+{
+    if (orientation == "horizontal")
+    {
+        if (column + length > N)
+            return 0;//overflow condition
+        for (int j = column; j < column + length; j++)
+        {
+            if (grid[row][j] != '~')// checking if smth already exists 
+                return 0; 
+        }
+    }
+    else if (orientation == "vertical")
+    { 
+        if (row + length > N)
+            return 0; //overflow condition
+        for (int i = row; i < row + length; i++)
+        {
+            if (grid[i][column] != '~')// checking if smth already exists 
+                return 0; 
+        }
+    }
+    return 1; 
+}
+
+void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5]) // no need to do difficulty manager if we have here
 {
 
     char col;
@@ -22,17 +48,17 @@ void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5]) // no need
             printf("LOSER you missed :) \n");
             if (Difficulty == "easy")
             {
-                Battle_Floor_General[Row_Index][Column_Index] = 'X';
+                Battle_Floor_General[Row_Index][Column_Index] = 'o';
             }
         }
-        else if (Battle_Floor_General[Row_Index][Column_Index] == 'h')
+        else if (Battle_Floor_General[Row_Index][Column_Index] == '*')
         {
             printf("You already shot there\n");
         }
         else
         {
             printf("Bravo Darabta\n");
-            Battle_Floor_General[Row_Index][Column_Index] = 'h';
+            Battle_Floor_General[Row_Index][Column_Index] = '*';
         }
     }
     else
@@ -48,6 +74,7 @@ int main()
     char Difficulty[5];
     char Player_1_Name[50];
     char Player_2_Name[50];
+    char Ship_Orientation[13];
     int Random_Varible = (rand() % 2 + 1);
 
     for (int i = 0; i < N; i++)
@@ -121,5 +148,10 @@ int main()
 
     return 0;
 
+<<<<<<< Updated upstream
     
+=======
+    printf("enter the boat orientation for the Carrier (5 cells); ");
+    scanf(""); // continue for the rest 
+>>>>>>> Stashed changes
 }
