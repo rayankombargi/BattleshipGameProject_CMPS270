@@ -158,5 +158,5 @@ int Ship_Placment(char **grid, int row, int column, int length, char orientation
             grid[row][i] = '|'; // Marking fragment of the ship
         }
     }
-    return 1; 
+    return 1;
 }
