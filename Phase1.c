@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+//dear rayyan check this now please 
+
 #define N 10
 
 int Ship_Placmentt(char grid[N][N], int row, int column, int length, char orientation[12])
