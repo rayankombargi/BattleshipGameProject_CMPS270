@@ -17,7 +17,8 @@ void Starting_Player(){
 
 int main()
 {
-    char Battle_Floor[N][N];
+    char Battle_Floor_1[N][N];
+    char Battle_Floor_2[N][N];
     char Difficulty[5];
     char Player_1_Name[50];
     char Player_2_Name[50];
@@ -27,7 +28,7 @@ int main()
     {
         for (int j = 0; j < N; j++)
         {
-            Battle_Floor[i][j] = '~';
+            Battle_Floor_1[i][j] = '~';
         }
     }
 
@@ -43,7 +44,32 @@ int main()
         printf("%2d ", i + 1);
         for (int j = 0; j < N; j++)
         {
-            printf("%c ", Battle_Floor[i][j]);
+            printf("%c ", Battle_Floor_1[i][j]);
+        }
+        printf("\n");
+    }
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            Battle_Floor_2[i][j] = '~';
+        }
+    }
+
+    printf("   ");
+    for (char Top_Letter_Indexing = 'A'; Top_Letter_Indexing < 'A' + N; Top_Letter_Indexing++)
+    {
+        printf("%c ", Top_Letter_Indexing);
+    }
+    printf("\n");
+
+    for (int i = 0; i < N; i++)
+    {
+        printf("%2d ", i + 1);
+        for (int j = 0; j < N; j++)
+        {
+            printf("%c ", Battle_Floor_2[i][j]);
         }
         printf("\n");
     }
