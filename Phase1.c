@@ -3,8 +3,44 @@
 #include <math.h>
 
 #define N 10
+void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5])
+{
 
-void Difficulty_Managment(char Difficlty[5])
+    char col;
+    int row;
+
+    printf("Enter your guess: ");
+    scanf(" %c%d", &col, &row);
+
+    int Column_Index = col - 'A'; // hon we just check the index using ascii code w the one under we do -1 to get index 0
+    int Row_Index = row - 1;
+
+    if (Row_Index >= 0 && Row_Index < N && Column_Index >= 0 && Column_Index < N)
+    {
+        if (Battle_Floor_General[Row_Index][Column_Index] == '~')
+        {
+            printf("LOSER you missed :) \n");
+            if (Difficulty == "easy")
+            {
+                Battle_Floor_General[Row_Index][Column_Index] = 'X';
+            }
+        }
+        else if (Battle_Floor_General[Row_Index][Column_Index] == 'h')
+        {
+            printf("You already shot there\n");
+        }
+        else
+        {
+            printf("Bravo Darabta\n");
+            Battle_Floor_General[Row_Index][Column_Index] = 'h';
+        }
+    }
+    else
+    {
+        printf("Choose a number from a-j and number 1-10\n");
+    }
+}
+void Difficulty_Managment(char Difficulty[5])
 {
 }
 
