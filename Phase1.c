@@ -3,7 +3,7 @@
 #include <math.h>
 
 #define N 10
-void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5])
+void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5]) // no need to do difficulty manager if we have here 
 {
 
     char col;
@@ -39,9 +39,6 @@ void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5])
     {
         printf("Choose a number from a-j and number 1-10\n");
     }
-}
-void Difficulty_Managment(char Difficulty[5])
-{
 }
 
 int main()
