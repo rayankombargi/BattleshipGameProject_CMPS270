@@ -5,6 +5,7 @@
 #define N 10
 
 void Guess_Maker(char **Battle_Floor_General, char Difficulty[5]);
+int Ship_Placment(char **grid, int row, int column, int length, char orientation[12]);
 
 int main()
 {
@@ -125,4 +126,37 @@ void Guess_Maker(char **Battle_Floor_General, char Difficulty[5]) // no need to 
     {
         printf("Choose a number from a-j and number 1-10\n");
     }
+}
+
+int Ship_Placment(char **grid, int row, int column, int length, char orientation[12])
+{
+    if (orientation == "horizontal")
+    {
+        if (column + length > N)
+            return 0;//overflow condition
+        for (int j = column; j < column + length; j++)
+        {
+            if (grid[row][j] != '~')// checking if smth already exists 
+                return 0; 
+        }
+        for (int j = column; j < column + length; j++)
+        {
+            grid[row][j] = '-'; // Marking fragment of the ship
+        }
+    }
+    else if (orientation == "vertical")
+    { 
+        if (row + length > N)
+            return 0; //overflow condition
+        for (int i = row; i < row + length; i++)
+        {
+            if (grid[i][column] != '~')// checking if smth already exists 
+                return 0; 
+        }
+        for (int i = column; i < column + length; i++)
+        {
+            grid[row][i] = '|'; // Marking fragment of the ship
+        }
+    }
+    return 1; 
 }
