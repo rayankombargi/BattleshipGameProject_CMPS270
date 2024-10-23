@@ -1,34 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
-//dear rayyan check this now please 
+#include <time.h>
 
 #define N 10
+
+void Clear_Board(char Battle_Floor[N][N])
+{
+}
 
 int Ship_Placmentt(char grid[N][N], int row, int column, int length, char orientation[12])
 {
     if (orientation == "horizontal")
     {
         if (column + length > N)
-            return 0;//overflow condition
+            return 0; // overflow condition
         for (int j = column; j < column + length; j++)
         {
-            if (grid[row][j] != '~')// checking if smth already exists 
-                return 0; 
+            if (grid[row][j] != '~') // checking if smth already exists
+                return 0;
         }
     }
     else if (orientation == "vertical")
-    { 
+    {
         if (row + length > N)
-            return 0; //overflow condition
+            return 0; // overflow condition
         for (int i = row; i < row + length; i++)
         {
-            if (grid[i][column] != '~')// checking if smth already exists 
-                return 0; 
+            if (grid[i][column] != '~') // checking if smth already exists
+                return 0;
         }
     }
-    return 1; 
+    return 1;
 }
 
 void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5]) // no need to do difficulty manager if we have here
@@ -76,7 +79,16 @@ int main()
     char Difficulty[5];
     char Player_1_Name[50];
     char Player_2_Name[50];
-    char Ship_Orientation[13];
+    char Carrier_Location[6];
+    char Battle_Ship_Location[6];
+    char Destroyer_Location[6];
+    char Submarine_Location[6];
+    char Carrier_Orientation[13];     // size =5
+    char Battle_Ship_Orientation[13]; // size=4
+    char Destroyer_Orinetation[13];   // size= 3
+    char Submarine_Orientation[13];   // size=2
+    unsigned int seed = time(0);
+    srand(time(NULL)); // asked dr zalghout for this he said each time we run its a different time so we can use the probability changes to 50/50
     int Random_Varible = (rand() % 2 + 1);
 
     for (int i = 0; i < N; i++)
@@ -150,10 +162,15 @@ int main()
 
     return 0;
 
-<<<<<<< Updated upstream
-    
-=======
-    printf("enter the boat orientation for the Carrier (5 cells); ");
-    scanf(""); // continue for the rest 
->>>>>>> Stashed changes
+// add player name and ask him for his move 
+
+
+    printf("enter the boat location and orientation for the Carrier (5 cells): ");
+    scanf("%s %s \n", Carrier_Location, Carrier_Orientation);
+    printf("enter the boat location and orientation for the Battleship (4 cells): ");
+    scanf("%s %s \n", Battle_Ship_Location, Battle_Ship_Orientation);
+    printf("enter the boat location and orientation for the Destroyer (3 cells): ");
+    scanf("%s %s \n", Destroyer_Location, Destroyer_Orinetation);
+    printf("enter the boat location and orientation for the Submarine (2 cells): ");
+    scanf("%s %s \n", Submarine_Location, Submarine_Orientation);
 }
