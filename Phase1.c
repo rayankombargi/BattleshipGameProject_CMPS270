@@ -1,57 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <math.h>
 #include <time.h>
 
 #define N 10
 #define Max_Ships 4
-
-int ship_lengths[Max_Ships] = {5, 4, 3, 2}; 
-char ship_symbols[Max_Ships] = {'C', 'B', 'D', 'S'}; 
-
-
-void Player_Turn(char opponent_grid[N][N], const char* player_name, char difficulty[5]) {
-    char guess[3]; // e.g., "B3"
-    int row, column;
-
-    printf("%s, it's your turn! Enter your guess (e.g., B3): ", player_name);
-    scanf("%s", guess);
-
-    // Convert guess to grid indices
-    column = guess[0] - 'A'; // Column index
-    row = atoi(guess + 1) - 1; // Row index (convert from string to int)
-
-    if (row >= 0 && row < N && column >= 0 && column < N) {
-        if (opponent_grid[row][column] == '~') {
-            printf("Miss!\n");
-            if (strcmp(difficulty, "Easy") == 0) {
-                opponent_grid[row][column] = 'o'; // Mark miss
-            }
-        } else if (opponent_grid[row][column] == '*') {
-            printf("You already shot there!\n");
-        } else {
-            printf("Hit!\n");
-            opponent_grid[row][column] = '*'; // Mark hit
-        }
-    } else {
-        printf("Invalid coordinates! You lose your turn.\n");
-    }
-}
-
-
-int Check_Game_Over(char grid[N][N]) {
-    for (int i = 0; i < MAX_SHIPS; i++) {
-        char ship_symbol = ship_symbols[i];
-        for (int j = 0; j < N; j++) {
-            for (int k = 0; k < N; k++) {
-                if (grid[j][k] == ship_symbol) {
-                    return 0; // Game is not over, ship is still afloat
-                }
-            }
-        }
-    }
-    return 1; // All ships sunk
-}
 
 void Clear_Board(char Battle_Floor[N][N]) {
     for (int i = 0; i < N; i++) {
@@ -61,58 +14,32 @@ void Clear_Board(char Battle_Floor[N][N]) {
     }
 }
 
-int Can_Place_Ship(char grid[N][N], int row, int column, int length, const char* orientation) {
-    if (strcmp(orientation, "horizontal") == 0) {
-        if (column + length > N) return 0; // Overflow condition
-        for (int j = column; j < column + length; j++) {
-            if (grid[row][j] != '~') return 0; // Checking if something already exists
-        }
-    } else if (strcmp(orientation, "vertical") == 0) {
-        if (row + length > N) return 0; // Overflow condition
-        for (int i = row; i < row + length; i++) {
-            if (grid[i][column] != '~') return 0; // Checking if something already exists
-        }
-    }
-    return 1; // Can place ship
-}
-
-void Place_Ship(char grid[N][N], int row, int column, int length, const char* orientation, char ship_symbol) {
-    if (strcmp(orientation, "horizontal") == 0) {
-        for (int j = column; j < column + length; j++) {
-            grid[row][j] = ship_symbol;
-        }
-    } else if (strcmp(orientation, "vertical") == 0) {
-        for (int i = row; i < row + length; i++) {
-            grid[i][column] = ship_symbol;
+int Ship_Placment(char grid[N][N], int row, int column, int length, char orientation[12])
+{
+    if (orientation == "horizontal")
+    {
+        if (column + length > N)
+            return 0; // overflow condition
+        for (int j = column; j < column + length; j++)
+        {
+            if (grid[row][j] != '~') // checking if smth already exists
+                return 0;
         }
     }
-}
-
-void Player_Ship_Placement(char grid[N][N], const char* player_name) {
-    int ship_lengths[] = {5, 4, 3, 2}; // Lengths of ships
-    const char* ship_names[] = {"Carrier", "Battleship", "Destroyer", "Submarine"};
-    char orientation[13];
-    char location[3]; 
-    int row, column;
-
-    for (int i = 0; i < 4; i++) {
-        while (1) {
-            printf("%s, enter the location and orientation for the %s (%d cells): ", player_name, ship_names[i], ship_lengths[i]);
-            scanf("%s %s", location, orientation);
-
-            column = location[0] - 'A'; 
-            row = atoi(location + 1) - 1; 
-            if (Can_Place_Ship(grid, row, column, ship_lengths[i], orientation)) {
-                Place_Ship(grid, row, column, ship_lengths[i], orientation, ship_names[i][0]); // Use first letter of ship name
-                break; 
-            } else {
-                printf("Invalid placement. Please try again.\n");
-            }
+    else if (orientation == "vertical")
+    {
+        if (row + length > N)
+            return 0; // overflow condition
+        for (int i = row; i < row + length; i++)
+        {
+            if (grid[i][column] != '~') // checking if smth already exists
+                return 0;
         }
     }
+    return 1;
 }
 
-void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5])
+void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5]) // no need to do difficulty manager if we have here
 {
 
     char col;
@@ -150,78 +77,105 @@ void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5])
     }
 }
 
-void Initialize_Grid(char grid[N][N]) {
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            grid[i][j] = '~';
+
+int main() {
+    char Battle_Floor_1[N][N];
+    char Battle_Floor_2[N][N];
+    char Difficulty[5];
+    char Player_1_Name[50];
+    char Player_2_Name[50];
+    char Carrier_Location[6];
+    char Battle_Ship_Location[6];
+    char Destroyer_Location[6];
+    char Submarine_Location[6];
+    char Carrier_Orientation[13];     // size =5
+    char Battle_Ship_Orientation[13]; // size=4
+    char Destroyer_Orinetation[13];   // size= 3
+    char Submarine_Orientation[13];   // size=2
+    unsigned int seed = time(0);
+    srand(time(NULL)); // asked dr zalghout for this he said each time we run its a different time so we can use the probability changes to 50/50
+    int Random_Varible = (rand() % 2 + 1);
+
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            Battle_Floor_1[i][j] = '~';
         }
     }
 
     printf("   ");
-    for (char col = 'A'; col < 'A' + N; col++) {
-        printf("%c ", col);
+    for (char Top_Letter_Indexing = 'A'; Top_Letter_Indexing < 'A' + N; Top_Letter_Indexing++)
+    {
+        printf("%c ", Top_Letter_Indexing);
     }
     printf("\n");
 
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < N; i++)
+    {
         printf("%2d ", i + 1);
-        for (int j = 0; j < N; j++) {
-            printf("%c ", grid[i][j]);
+        for (int j = 0; j < N; j++)
+        {
+            printf("%c ", Battle_Floor_1[i][j]);
         }
         printf("\n");
     }
-}
 
-int main() {
-    char Battle_Floor_1[N][N], Battle_Floor_2[N][N];
-    char Difficulty[5];
-    char Player_1_Name[50], Player_2_Name[50];
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            Battle_Floor_2[i][j] = '~';
+        }
+    }
 
-    srand(time(NULL));
-
-    Initialize_Grid(Battle_Floor_1);
-    Initialize_Grid(Battle_Floor_2);
-
-    printf("Choose the difficulty (Easy/Hard): ");
-    scanf("%4s", Difficulty);
+    printf("   ");
+    for (char Top_Letter_Indexing = 'A'; Top_Letter_Indexing < 'A' + N; Top_Letter_Indexing++)
+    {
+        printf("%c ", Top_Letter_Indexing);
+    }
     printf("\n");
 
-    printf("Player 1, please enter your name: ");
+    for (int i = 0; i < N; i++)
+    {
+        printf("%2d ", i + 1);
+        for (int j = 0; j < N; j++)
+        {
+            printf("%c ", Battle_Floor_2[i][j]);
+        }
+        printf("\n");
+    }
+
+    printf("Choose the difficulty (Easy/Hard): ");
+    scanf("%4s", &Difficulty); // In the easy mode, the grid will track both the hits and the misses,
+    //                              whereas in the hard mode, the grid will only track hits
+    printf("\n");
+
+    printf("Player 1 please enter you name: ");
     scanf("%49s", Player_1_Name);
     printf("\n");
 
-    printf("Player 2, please enter your name: ");
+    printf("Player 2 please enter you name: ");
     scanf("%49s", Player_2_Name);
     printf("\n");
-
-    int Random_Variable = rand() % 2;
-    if (Random_Variable == 0) {
-        printf("%s starts first!\n", Player_1_Name);
-    } else {
-        printf("%s starts first!\n", Player_2_Name);
+    if (Random_Varible == 1)
+    {
+        printf("Player 1 starts! \n");
     }
-
-    Player_Ship_Placement(Battle_Floor_1, Player_1_Name);
-    system("clear");
-    Player_Ship_Placement(Battle_Floor_2, Player_2_Name);
-
-    while (1) {
-        Display_Grid(Battle_Floor_2);
-        Player_Turn(Battle_Floor_2, Player_1_Name, Difficulty);
-        if (Check_Game_Over(Battle_Floor_2)) {
-            printf("%s wins!\n", Player_1_Name);
-            break;
-        }
-
-        Display_Grid(Battle_Floor_1);
-        Player_Turn(Battle_Floor_1, Player_2_Name, Difficulty);
-        if (Check_Game_Over(Battle_Floor_1)) {
-            printf("%s wins!\n", Player_2_Name);
-            break;
-        }
-    }
+    else
+        printf("Player 2 starts!\n");
 
     return 0;
+
+// add player name and ask him for his move 
+
+
+    printf("enter the boat location and orientation for the Carrier (5 cells): ");
+    scanf("%s %s \n", Carrier_Location, Carrier_Orientation);
+    printf("enter the boat location and orientation for the Battleship (4 cells): ");
+    scanf("%s %s \n", Battle_Ship_Location, Battle_Ship_Orientation);
+    printf("enter the boat location and orientation for the Destroyer (3 cells): ");
+    scanf("%s %s \n", Destroyer_Location, Destroyer_Orinetation);
+    printf("enter the boat location and orientation for the Submarine (2 cells): ");
+    scanf("%s %s \n", Submarine_Location, Submarine_Orientation);
 }
-
-
