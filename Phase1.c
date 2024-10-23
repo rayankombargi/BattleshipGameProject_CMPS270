@@ -4,6 +4,11 @@
 #include <time.h>
 
 #define N 10
+#define Max_Ships 4
+
+int ship_lengths[Max_Ships] = {5, 4, 3, 2}; 
+char ship_symbols[Max_Ships] = {'C', 'B', 'D', 'S'}; 
+
 
 void Player_Turn(char opponent_grid[N][N], const char* player_name, char difficulty[5]) {
     char guess[3]; // e.g., "B3"
@@ -31,6 +36,21 @@ void Player_Turn(char opponent_grid[N][N], const char* player_name, char difficu
     } else {
         printf("Invalid coordinates! You lose your turn.\n");
     }
+}
+
+
+int Check_Game_Over(char grid[N][N]) {
+    for (int i = 0; i < MAX_SHIPS; i++) {
+        char ship_symbol = ship_symbols[i];
+        for (int j = 0; j < N; j++) {
+            for (int k = 0; k < N; k++) {
+                if (grid[j][k] == ship_symbol) {
+                    return 0; // Game is not over, ship is still afloat
+                }
+            }
+        }
+    }
+    return 1; // All ships sunk
 }
 
 void Clear_Board(char Battle_Floor[N][N]) {
@@ -72,7 +92,7 @@ void Player_Ship_Placement(char grid[N][N], const char* player_name) {
     int ship_lengths[] = {5, 4, 3, 2}; // Lengths of ships
     const char* ship_names[] = {"Carrier", "Battleship", "Destroyer", "Submarine"};
     char orientation[13];
-    char location[3]; // E.g., B3
+    char location[3]; 
     int row, column;
 
     for (int i = 0; i < 4; i++) {
@@ -182,16 +202,23 @@ int main() {
     }
 
     Player_Ship_Placement(Battle_Floor_1, Player_1_Name);
-    system("clear"); 
+    system("clear");
     Player_Ship_Placement(Battle_Floor_2, Player_2_Name);
 
-    // Gameplay loop
     while (1) {
         Display_Grid(Battle_Floor_2);
         Player_Turn(Battle_Floor_2, Player_1_Name, Difficulty);
+        if (Check_Game_Over(Battle_Floor_2)) {
+            printf("%s wins!\n", Player_1_Name);
+            break;
+        }
 
         Display_Grid(Battle_Floor_1);
         Player_Turn(Battle_Floor_1, Player_2_Name, Difficulty);
+        if (Check_Game_Over(Battle_Floor_1)) {
+            printf("%s wins!\n", Player_2_Name);
+            break;
+        }
     }
 
     return 0;
