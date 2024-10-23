@@ -1,38 +1,43 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <time.h>
+#include <stdbool.h>
 
 #define N 10
 
-void Guess_Maker(char **Battle_Floor_General, char Difficulty[5]);
-int Ship_Placment(char **grid, int row, int column, int length, char orientation[12]);
+// Player Profile
+typedef struct player {
+    char Name[50];
+    char **grid;
+} Player;
 
+// Function prototypes
+void StartTurn(Player *Current, Player *Other); // Starts the match with the first player
+void MovePicker(Player *Playing, Player *Other); // Function supposed to let the Player choose a move (not developped yet)
+void Fire_Move(char **Player_Grid, char **Opponent_Grid, char Difficulty[5]); // Added Player's grid and opponent's grid
+int Ship_Placment(char **grid, int row, int column, int length, char orientation[12]);
+bool PlayerLost(Player *player); // Checks if a player has lost all its ships
+
+// Written functions
 int main()
 {
     char Difficulty[5];
-    char Player_1_Name[50];
-    char Player_2_Name[50];
-    int Random_Varible = (rand() % 2 + 1);
+    Player Player1;
+    Player Player2;
 
-    char **Battle_Floor_1 = (char **)malloc(sizeof(char*) * N);
+    srand(time(0));
+    int Random_Varible = (rand() % 3);
+
+    char **Battle_Floor = (char **)malloc(sizeof(char*) * N);
     for (int i = 0; i < N; i++)
     {
-        Battle_Floor_1[i] = (char *)malloc(sizeof(char) * N);
+        Battle_Floor[i] = (char *)malloc(sizeof(char) * N);
         for (int j = 0; j < N; j++)
         {
-            Battle_Floor_1[i][j] = '~';
+            Battle_Floor[i][j] = '~';
         }
     }
 
-    char **Battle_Floor_2 = (char **)malloc(sizeof(char*) * N);
-    for (int i = 0; i < N; i++)
-    {
-        Battle_Floor_2[i] = (char *)malloc(sizeof(char) * N);
-        for (int j = 0; j < N; j++)
-        {
-            Battle_Floor_2[i][j] = '~';
-        }
-    }
 
     printf("   ");
     for (char Top_Letter_Indexing = 'A'; Top_Letter_Indexing < 'A' + N; Top_Letter_Indexing++)
@@ -46,24 +51,7 @@ int main()
         printf("%2d ", i + 1);
         for (int j = 0; j < N; j++)
         {
-            printf("%c ", Battle_Floor_1[i][j]);
-        }
-        printf("\n");
-    }
-
-    printf("   ");
-    for (char Top_Letter_Indexing = 'A'; Top_Letter_Indexing < 'A' + N; Top_Letter_Indexing++)
-    {
-        printf("%c ", Top_Letter_Indexing);
-    }
-    printf("\n");
-
-    for (int i = 0; i < N; i++)
-    {
-        printf("%2d ", i + 1);
-        for (int j = 0; j < N; j++)
-        {
-            printf("%c ", Battle_Floor_2[i][j]);
+            printf("%c ", Battle_Floor[i][j]);
         }
         printf("\n");
     }
@@ -74,25 +62,51 @@ int main()
     printf("\n");
 
     printf("Player 1 please enter you name: ");
-    scanf("%49s", Player_1_Name);
+    scanf("%49s", Player1.Name);
+    Player1.grid = Battle_Floor;
     printf("\n");
 
     printf("Player 2 please enter you name: ");
-    scanf("%49s", Player_2_Name);
+    scanf("%49s", Player2.Name);
+    Player2.grid = Battle_Floor;
     printf("\n");
+
+    Player *CurrentPlayer;
+    Player *OtherPlayer;
     if (Random_Varible == 1)
     {
         printf("Player 1 starts! \n");
+        CurrentPlayer = &Player1;
+        OtherPlayer = &Player2;
     }
-    else
+    else {
         printf("Player 2 starts!\n");
+        CurrentPlayer = &Player2;
+        OtherPlayer = &Player1;
+    }
+
+    StartTurn(CurrentPlayer,OtherPlayer);
 
     return 0;
 }
 
-void Guess_Maker(char **Battle_Floor_General, char Difficulty[5]) // no need to do difficulty manager if we have here 
-{
+void StartTurn(Player *Current, Player *Other) {
 
+    do {
+        MovePicker(Current, Other);
+        Player *temp = Current;
+        Current = Other;
+        Other = temp;
+
+    } while (true);
+}
+void MovePicker(Player *Playing, Player *Other)
+{
+    
+}
+
+void Fire_Move(char **Player_Grid, char **Opponent__Grid, char Difficulty[5]) // no need to do difficulty manager if we have here 
+{
     char col;
     int row;
 
@@ -104,22 +118,22 @@ void Guess_Maker(char **Battle_Floor_General, char Difficulty[5]) // no need to 
 
     if (Row_Index >= 0 && Row_Index < N && Column_Index >= 0 && Column_Index < N)
     {
-        if (Battle_Floor_General[Row_Index][Column_Index] == '~')
+        if (Opponent__Grid[Row_Index][Column_Index] == '~')
         {
             printf("LOSER you missed :) \n");
             if (Difficulty == "easy")
             {
-                Battle_Floor_General[Row_Index][Column_Index] = 'X';
+                Player_Grid[Row_Index][Column_Index] = 'X';
             }
         }
-        else if (Battle_Floor_General[Row_Index][Column_Index] == 'h')
+        else if (Opponent__Grid[Row_Index][Column_Index] == 'h')
         {
             printf("You already shot there\n");
         }
         else
         {
             printf("Bravo Darabta\n");
-            Battle_Floor_General[Row_Index][Column_Index] = 'h';
+            Opponent__Grid[Row_Index][Column_Index] = 'h';
         }
     }
     else
@@ -157,6 +171,18 @@ int Ship_Placment(char **grid, int row, int column, int length, char orientation
         {
             grid[row][i] = '|'; // Marking fragment of the ship
         }
+    }
+    return 1;
+}
+
+
+bool PlayerLost(Player *player) {
+    char **grid = player->grid;
+
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) 
+            if (grid[i][j] == '-' || grid[i][j] == '|')
+                return 0;
     }
     return 1;
 }
