@@ -3,6 +3,9 @@
 #include <math.h>
 
 #define N 10
+#define Max_Ships 4
+#define Max_Radar_Sweep 3
+#define Max_Smoke_Screen 4
 void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5]) // no need to do difficulty manager if we have here 
 {
 
