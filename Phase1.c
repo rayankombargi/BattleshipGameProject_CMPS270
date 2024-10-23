@@ -80,13 +80,11 @@ void Player_Ship_Placement(char grid[N][N], const char* player_name) {
             printf("%s, enter the location and orientation for the %s (%d cells): ", player_name, ship_names[i], ship_lengths[i]);
             scanf("%s %s", location, orientation);
 
-            // Convert location to grid indices
-            column = location[0] - 'A'; // Column index
-            row = atoi(location + 1) - 1; // Row index (convert from string to int)
-
+            column = location[0] - 'A'; 
+            row = atoi(location + 1) - 1; 
             if (Can_Place_Ship(grid, row, column, ship_lengths[i], orientation)) {
                 Place_Ship(grid, row, column, ship_lengths[i], orientation, ship_names[i][0]); // Use first letter of ship name
-                break; // Ship placed successfully
+                break; 
             } else {
                 printf("Invalid placement. Please try again.\n");
             }
@@ -94,7 +92,7 @@ void Player_Ship_Placement(char grid[N][N], const char* player_name) {
     }
 }
 
-void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5]) // no need to do difficulty manager if we have here
+void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5])
 {
 
     char col;
@@ -132,16 +130,13 @@ void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5]) // no need
     }
 }
 
-// Function to create and display a 10x10 grid
 void Initialize_Grid(char grid[N][N]) {
-    // Fill the grid with water ('~')
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             grid[i][j] = '~';
         }
     }
 
-    // Display the grid
     printf("   ");
     for (char col = 'A'; col < 'A' + N; col++) {
         printf("%c ", col);
@@ -186,22 +181,17 @@ int main() {
         printf("%s starts first!\n", Player_2_Name);
     }
 
-    // Ship placement for both players
     Player_Ship_Placement(Battle_Floor_1, Player_1_Name);
-    system("clear"); // Clear the screen after player 1 places their ships
+    system("clear"); 
     Player_Ship_Placement(Battle_Floor_2, Player_2_Name);
 
     // Gameplay loop
     while (1) {
-        // Player 1's turn
         Display_Grid(Battle_Floor_2);
         Player_Turn(Battle_Floor_2, Player_1_Name, Difficulty);
-        // Add logic to check for game over condition after Player 1's turn
 
-        // Player 2's turn
         Display_Grid(Battle_Floor_1);
         Player_Turn(Battle_Floor_1, Player_2_Name, Difficulty);
-        // Add logic to check for game over condition after Player 2's turn
     }
 
     return 0;
