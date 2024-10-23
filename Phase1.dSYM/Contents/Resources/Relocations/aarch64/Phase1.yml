@@ -1,0 +1,9 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Applications/The Folder/270Project/BattleshipGameProject_CMPS270/Phase1'
+relocations:
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _Guess_Maker, symObjAddr: 0x0, symBinAddr: 0x100003A88, symSize: 0x1BC }
+  - { offsetInCU: 0x4D, offset: 0x4D, size: 0x8, addend: 0x0, symName: _Guess_Maker, symObjAddr: 0x0, symBinAddr: 0x100003A88, symSize: 0x1BC }
+  - { offsetInCU: 0xB7, offset: 0xB7, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x1BC, symBinAddr: 0x100003C44, symSize: 0x14C }
+  - { offsetInCU: 0x160, offset: 0x160, size: 0x8, addend: 0x0, symName: _displayGrid, symObjAddr: 0x308, symBinAddr: 0x100003D90, symSize: 0x144 }
+...
