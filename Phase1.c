@@ -268,7 +268,7 @@ void performMove(Player *attacker, Player *defender, int trackingDifficulty) { /
     if (strncmp(input, "Fire", 4) == 0) {
         char coord[10];
         if (sscanf(input, "Fire %s", coord) == 1) {
-            performFire(attacker, defender, coord);// waiting for this func to be implemented later
+            performFire(attacker, defender, coord);
         } else {
             printf("Invalid command format. You lose your turn.\n");
         }
@@ -276,7 +276,7 @@ void performMove(Player *attacker, Player *defender, int trackingDifficulty) { /
         if (attacker->radarCount > 0) {
             char coord[10];
             if (sscanf(input, "Radar %s", coord) == 1) {
-                performRadar(attacker, defender, coord);// waiting for this func to be implemented later
+                performRadar(attacker, defender, coord);
             } else {
                 printf("Invalid command format. You lose your turn.\n");
             }
@@ -331,4 +331,72 @@ void showMoveOptions(Player *player) {// dis[lays the name of allowed moves so t
     if (player->artilleryAvailable) printf("- Artillery [coordinate] (Available)\n");
     if (player->torpedoAvailable) printf("- Torpedo [row/column] (Available)\n");
 } 
+
+void performFire(Player *attacker, Player *defender, char *coord) {// performs the fire operation that is unlimeted and shoots the opps grid 
+    int row, col;
+    if (sscanf(coord, "%c%d", &coord[0], &row) != 2) {
+        printf("Invalid coordinate format. You lose your turn.\n");
+        return;
+    }
+    row -= 1;
+    col = toupper(coord[0]) - 'A';
+
+    if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {
+        printf("Invalid coordinates. You lose your turn.\n");
+        return;
+    }
+
+    GridCell *cell = &defender->grid[row][col];
+
+    if (cell->isHit) {
+        printf("You already targeted this location. You lose your turn.\n");
+        return;
+    }
+
+    cell->isHit = 1;
+
+    if (cell->hasShip) {
+        cell->display = '*';
+        printf("Hit!\n");
+        updateShipStatus(defender, row, col);
+    } else {
+        cell->display = 'o';
+        printf("Miss.\n");
+    }
+}
+
+void performRadar(Player *attacker, Player *defender, char *coord) {//alows player to do the radar
+    int row, col;
+    if (sscanf(coord, "%c%d", &coord[0], &row) != 2) {
+        printf("Invalid coordinate format. You lose your turn.\n");
+        return;
+    }
+    row -= 1;
+    col = toupper(coord[0]) - 'A';
+
+    if (row < 0 || row >= GRID_SIZE - 1 || col < 0 || col >= GRID_SIZE - 1) {
+        printf("Invalid coordinates. You lose your turn.\n");
+        return;
+    }
+
+    int found = 0;
+    for (int i = row; i <= row + 1; i++) {
+        for (int j = col; j <= col + 1; j++) {//we check if we csn use radar due to smoke 
+            if (defender->grid[i][j].hasSmoke) continue;
+            if (defender->grid[i][j].hasShip) {
+                found = 1;
+                break;
+            }
+        }
+        if (found) break;
+    }
+
+    if (found) {
+        printf("Enemy ships found.\n");
+    } else {
+        printf("No enemy ships found.\n");
+    }
+    attacker->radarCount--;
+}
+
 
