@@ -6,27 +6,23 @@
 
 #define GRID_SIZE 10
 #define NUM_SHIPS 4
-
 #define EASY 0
 #define HARD 1
-
 #define MAX_RADAR_SWEEPS 3
-
-// Structure Definitions
 
 typedef struct {
     char name[20];
     int size;
     int hits;
     int sunk;
-    int coordinates[5][2];  // Maximum size is 5 (for Carrier)
+    int coordinates[5][2]; 
 } Ship;
 
 typedef struct {
-    char display;    // What is shown on the grid ('~', '*', 'o')
-    int hasShip;     // 1 if there's a ship, 0 otherwise
-    int isHit;       // 1 if the cell has been targeted, 0 otherwise
-    int hasSmoke;    // 1 if the cell is under smoke screen, 0 otherwise
+    char display;   
+    int hasShip;   
+    int isHit;      
+    int hasSmoke;   
 } GridCell;
 
 typedef struct {
@@ -109,4 +105,34 @@ void initializeGrid(GridCell grid[GRID_SIZE][GRID_SIZE]) {
             grid[i][j].hasSmoke = 0;
         }
     }
+}
+
+void displayGrid(GridCell grid[GRID_SIZE][GRID_SIZE], int trackingDifficulty) {
+    printf("   A B C D E F G H I J\n");
+    for (int i = 0; i < GRID_SIZE; i++) {
+        printf("%2d", i + 1);
+        for (int j = 0; j < GRID_SIZE; j++) {
+            if (trackingDifficulty == HARD && grid[i][j].isHit == 0) {
+                printf(" ~");
+            } else {
+                printf(" %c", grid[i][j].display);
+            }
+        }
+        printf("\n");
+    }
+}
+
+int getTrackingDifficulty() {
+    int choice;
+    printf("Select tracking difficulty level:\n");
+    printf("1. Easy (tracks hits and misses)\n");
+    printf("2. Hard (tracks hits only)\n");
+    printf("Enter choice (1 or 2): ");
+    scanf("%d", &choice);
+    while (choice != 1 && choice != 2) {
+        printf("Invalid choice. Please enter 1 or 2: ");
+        scanf("%d", &choice);
+    }
+    clearInputBuffer();
+    return (choice == 1) ? EASY : HARD;
 }
