@@ -399,4 +399,28 @@ void performRadar(Player *attacker, Player *defender, char *coord) {//alows play
     attacker->radarCount--;
 }
 
+void performSmoke(Player *player, char *coord) {// performs the smoke screen 
+    int row, col;
+    if (sscanf(coord, "%c%d", &coord[0], &row) != 2) {
+        printf("Invalid coordinate format. You lose your turn.\n");
+        return;
+    }
+    row -= 1;
+    col = toupper(coord[0]) - 'A';
+
+    if (row < 0 || row >= GRID_SIZE - 1 || col < 0 || col >= GRID_SIZE - 1) {
+        printf("Invalid coordinates. You lose your turn.\n");
+        return;
+    }
+
+    for (int i = row; i <= row + 1; i++) {
+        for (int j = col; j <= col + 1; j++) {
+            player->grid[i][j].hasSmoke = 1;
+        }
+    }
+    player->smokeCount--;
+    clearScreen();
+    printf("Smoke screen deployed.\n");
+}
+
 
