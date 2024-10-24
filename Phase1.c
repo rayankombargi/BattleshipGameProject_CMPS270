@@ -159,3 +159,36 @@ void initializePlayer(Player *player) { // got help from my friend (Fadel) on th
         memset(player->ships[i].coordinates, 0, sizeof(player->ships[i].coordinates));
     }
 }
+
+void placeShips(Player *player) {
+    char coord[10];
+    char orientation[15];
+
+    for (int i = 0; i < NUM_SHIPS; i++) {
+        int validPlacement = 0;
+        while (!validPlacement) {
+            printf("%s, place your %s (size %d).\n", player->name, player->ships[i].name, player->ships[i].size);
+            printf("Enter starting coordinate (e.g., B3): ");
+            fgets(coord, sizeof(coord), stdin);
+            coord[strcspn(coord, "\n")] = '\0'; 
+
+            printf("Enter orientation (horizontal/vertical): ");
+            fgets(orientation, sizeof(orientation), stdin);
+            orientation[strcspn(orientation, "\n")] = '\0';  
+            int row, col;
+            if (sscanf(coord, "%c%d", &coord[0], &row) != 2) {
+                printf("Invalid coordinate format. Try again.\n");
+                continue;
+            }
+            row -= 1;
+            col = toupper(coord[0]) - 'A';
+
+            validPlacement = validateAndPlaceShip(player->grid, &player->ships[i], row, col, orientation);
+            if (!validPlacement) {
+                printf("Invalid placement. Try again.\n");
+            } else {
+                printf("Ship placed successfully.\n");
+            }
+        }
+    }
+}
