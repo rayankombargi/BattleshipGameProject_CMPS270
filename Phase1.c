@@ -136,3 +136,26 @@ int getTrackingDifficulty() {
     clearInputBuffer();
     return (choice == 1) ? EASY : HARD;
 }
+
+void initializePlayer(Player *player) { // got help from my friend (Fadel) on this due to some errors 
+    printf("Enter player name: ");
+    fgets(player->name, sizeof(player->name), stdin);
+    player->name[strcspn(player->name, "\n")] = '\0'; 
+    initializeGrid(player->grid);
+    player->radarCount = MAX_RADAR_SWEEPS;
+    player->smokeCount = 0;
+    player->artilleryAvailable = 0;
+    player->torpedoAvailable = 0;
+    player->shipsSunk = 0;
+
+    char *shipNames[NUM_SHIPS] = {"Carrier", "Battleship", "Destroyer", "Submarine"};
+    int shipSizes[NUM_SHIPS] = {5, 4, 3, 2};
+
+    for (int i = 0; i < NUM_SHIPS; i++) {
+        strncpy(player->ships[i].name, shipNames[i], sizeof(player->ships[i].name));
+        player->ships[i].size = shipSizes[i];
+        player->ships[i].hits = 0;
+        player->ships[i].sunk = 0;
+        memset(player->ships[i].coordinates, 0, sizeof(player->ships[i].coordinates));
+    }
+}
