@@ -495,3 +495,26 @@ void unlockSpecialMoves(Player *player) { //giving player the special powers
         printf("%s has unlocked Torpedo for the next turn!\n", player->name);
     }
 }
+
+int checkWinCondition(Player *player) {//checks if the player has won 
+    for (int i = 0; i < NUM_SHIPS; i++) {
+        if (!player->ships[i].sunk) {
+            return 0;
+        }
+    }
+    return 1;
+} 
+
+
+void gameLoop(Player *currentPlayer, Player *opponent, int trackingDifficulty) { //alows the game to move on and contiue 
+    while (1) {
+        performMove(currentPlayer, opponent, trackingDifficulty);
+        if (checkWinCondition(opponent)) {
+            printf("\n%s wins the game!\n", currentPlayer->name);
+            break;
+        }
+        Player *temp = currentPlayer;
+        currentPlayer = opponent;
+        opponent = temp;
+    }
+}
