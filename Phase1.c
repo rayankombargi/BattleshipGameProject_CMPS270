@@ -322,3 +322,13 @@ void performMove(Player *attacker, Player *defender, int trackingDifficulty) { /
         printf("Invalid command. You lose your turn.\n");
     }
 }
+
+void showMoveOptions(Player *player) {// dis[lays the name of allowed moves so the pllayer can enter it correctly ]
+    printf("Available moves:\n");
+    printf("- Fire [coordinate]\n");
+    if (player->radarCount > 0) printf("- Radar [coordinate] (Remaining: %d)\n", player->radarCount);
+    if (player->smokeCount > 0) printf("- Smoke [coordinate] (Available: %d)\n", player->smokeCount);
+    if (player->artilleryAvailable) printf("- Artillery [coordinate] (Available)\n");
+    if (player->torpedoAvailable) printf("- Torpedo [row/column] (Available)\n");
+} 
+
