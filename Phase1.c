@@ -192,3 +192,32 @@ void placeShips(Player *player) {
         }
     }
 }
+
+int validateAndPlaceShip(GridCell grid[GRID_SIZE][GRID_SIZE], Ship *ship, int row, int col, char *orientation) {
+    int carl = 0, carl1 = 0;
+    if (strcmp(orientation, "horizontal") == 0) {
+        carl1 = 1;
+    } else if (strcmp(orientation, "vertical") == 0) {
+        carl = 1;
+    } else {
+        return 0;
+    }
+
+    if (row < 0 || col < 0 || row >= GRID_SIZE || col >= GRID_SIZE ||
+        row + carl * (ship->size - 1) >= GRID_SIZE || col + carl1 * (ship->size - 1) >= GRID_SIZE) {
+        return 0;
+    }
+
+    for (int i = 0; i < ship->size; i++) {
+        if (grid[row + dr * i][col + carl1 * i].hasShip) {
+            return 0;
+        }
+    }
+
+    for (int i = 0; i < ship->size; i++) {
+        grid[row + dr * i][col + carl1 * i].hasShip = 1;
+        ship->coordinates[i][0] = row + carl * i;
+        ship->coordinates[i][1] = col + carl1 * i;
+    }
+    return 1;
+}
