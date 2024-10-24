@@ -10,22 +10,25 @@
 #define HARD 1
 #define MAX_RADAR_SWEEPS 3
 
-typedef struct {
+typedef struct
+{
     char name[20];
     int size;
     int hits;
     int sunk;
-    int coordinates[5][2]; 
+    int coordinates[5][2];
 } Ship;
 
-typedef struct {
-    char display;   
-    int hasShip;   
-    int isHit;      
-    int hasSmoke;   
+typedef struct
+{
+    char display;
+    int hasShip;
+    int isHit;
+    int hasSmoke;
 } GridCell;
 
-typedef struct {
+typedef struct
+{
     char name[50];
     GridCell grid[GRID_SIZE][GRID_SIZE];
     Ship ships[NUM_SHIPS];
@@ -35,7 +38,6 @@ typedef struct {
     int torpedoAvailable;
     int shipsSunk;
 } Player;
-
 
 void initializeGrid(GridCell grid[GRID_SIZE][GRID_SIZE]);
 void displayGrid(GridCell grid[GRID_SIZE][GRID_SIZE], int trackingDifficulty);
@@ -57,10 +59,9 @@ void gameLoop(Player *player1, Player *player2, int trackingDifficulty);
 void clearScreen();
 void clearInputBuffer();
 
-
-
-int main() {
-    srand(time(NULL)); // to randomize dr zalgout said we can do it like dr zalghout said 
+int main()
+{
+    srand(time(NULL)); // to randomize dr zalgout said we can do it like dr zalghout said
 
     Player player1, player2;
     int trackingDifficulty;
@@ -82,10 +83,13 @@ int main() {
     clearScreen();
 
     Player *currentPlayer, *opponent;
-    if (rand() % 2 == 0) {
+    if (rand() % 2 == 0)
+    {
         currentPlayer = &player1;
         opponent = &player2;
-    } else {
+    }
+    else
+    {
         currentPlayer = &player2;
         opponent = &player1;
     }
@@ -96,9 +100,12 @@ int main() {
     return 0;
 }
 
-void initializeGrid(GridCell grid[GRID_SIZE][GRID_SIZE]) {
-    for (int i = 0; i < GRID_SIZE; i++) {
-        for (int j = 0; j < GRID_SIZE; j++) {
+void initializeGrid(GridCell grid[GRID_SIZE][GRID_SIZE])
+{
+    for (int i = 0; i < GRID_SIZE; i++)
+    {
+        for (int j = 0; j < GRID_SIZE; j++)
+        {
             grid[i][j].display = '~';
             grid[i][j].hasShip = 0;
             grid[i][j].isHit = 0;
@@ -107,14 +114,20 @@ void initializeGrid(GridCell grid[GRID_SIZE][GRID_SIZE]) {
     }
 }
 
-void displayGrid(GridCell grid[GRID_SIZE][GRID_SIZE], int trackingDifficulty) {
+void displayGrid(GridCell grid[GRID_SIZE][GRID_SIZE], int trackingDifficulty)
+{
     printf("   A B C D E F G H I J\n");
-    for (int i = 0; i < GRID_SIZE; i++) {
+    for (int i = 0; i < GRID_SIZE; i++)
+    {
         printf("%2d", i + 1);
-        for (int j = 0; j < GRID_SIZE; j++) {
-            if (trackingDifficulty == HARD && grid[i][j].isHit == 0) {
+        for (int j = 0; j < GRID_SIZE; j++)
+        {
+            if (trackingDifficulty == HARD && grid[i][j].isHit == 0)
+            {
                 printf(" ~");
-            } else {
+            }
+            else
+            {
                 printf(" %c", grid[i][j].display);
             }
         }
@@ -122,14 +135,16 @@ void displayGrid(GridCell grid[GRID_SIZE][GRID_SIZE], int trackingDifficulty) {
     }
 }
 
-int getTrackingDifficulty() {
+int getTrackingDifficulty()
+{
     int choice;
     printf("Select tracking difficulty level:\n");
     printf("1. Easy (tracks hits and misses)\n");
     printf("2. Hard (tracks hits only)\n");
     printf("Enter choice (1 or 2): ");
     scanf("%d", &choice);
-    while (choice != 1 && choice != 2) {
+    while (choice != 1 && choice != 2)
+    {
         printf("Invalid choice. Please enter 1 or 2: ");
         scanf("%d", &choice);
     }
@@ -137,10 +152,11 @@ int getTrackingDifficulty() {
     return (choice == 1) ? EASY : HARD;
 }
 
-void initializePlayer(Player *player) { // got help from my friend (Fadel) on this due to some errors 
+void initializePlayer(Player *player)
+{ // got help from my friend (Fadel) on this due to some errors
     printf("Enter player name: ");
     fgets(player->name, sizeof(player->name), stdin);
-    player->name[strcspn(player->name, "\n")] = '\0'; 
+    player->name[strcspn(player->name, "\n")] = '\0';
     initializeGrid(player->grid);
     player->radarCount = MAX_RADAR_SWEEPS;
     player->smokeCount = 0;
@@ -151,7 +167,8 @@ void initializePlayer(Player *player) { // got help from my friend (Fadel) on th
     char *shipNames[NUM_SHIPS] = {"Carrier", "Battleship", "Destroyer", "Submarine"};
     int shipSizes[NUM_SHIPS] = {5, 4, 3, 2};
 
-    for (int i = 0; i < NUM_SHIPS; i++) {
+    for (int i = 0; i < NUM_SHIPS; i++)
+    {
         strncpy(player->ships[i].name, shipNames[i], sizeof(player->ships[i].name));
         player->ships[i].size = shipSizes[i];
         player->ships[i].hits = 0;
@@ -160,23 +177,27 @@ void initializePlayer(Player *player) { // got help from my friend (Fadel) on th
     }
 }
 
-void placeShips(Player *player) {
+void placeShips(Player *player)
+{
     char coord[10];
     char orientation[15];
 
-    for (int i = 0; i < NUM_SHIPS; i++) {
+    for (int i = 0; i < NUM_SHIPS; i++)
+    {
         int validPlacement = 0;
-        while (!validPlacement) {
+        while (!validPlacement)
+        {
             printf("%s, place your %s (size %d).\n", player->name, player->ships[i].name, player->ships[i].size);
             printf("Enter starting coordinate (e.g., B3): ");
             fgets(coord, sizeof(coord), stdin);
-            coord[strcspn(coord, "\n")] = '\0'; 
+            coord[strcspn(coord, "\n")] = '\0';
 
             printf("Enter orientation (horizontal/vertical): ");
             fgets(orientation, sizeof(orientation), stdin);
-            orientation[strcspn(orientation, "\n")] = '\0';  
+            orientation[strcspn(orientation, "\n")] = '\0';
             int row, col;
-            if (sscanf(coord, "%c%d", &coord[0], &row) != 2) {
+            if (sscanf(coord, "%c%d", &coord[0], &row) != 2)
+            {
                 printf("Invalid coordinate format. Try again.\n");
                 continue;
             }
@@ -184,40 +205,120 @@ void placeShips(Player *player) {
             col = toupper(coord[0]) - 'A';
 
             validPlacement = validateAndPlaceShip(player->grid, &player->ships[i], row, col, orientation);
-            if (!validPlacement) {
+            if (!validPlacement)
+            {
                 printf("Invalid placement. Try again.\n");
-            } else {
+            }
+            else
+            {
                 printf("Ship placed successfully.\n");
             }
         }
     }
 }
 
-int validateAndPlaceShip(GridCell grid[GRID_SIZE][GRID_SIZE], Ship *ship, int row, int col, char *orientation) {
+int validateAndPlaceShip(GridCell grid[GRID_SIZE][GRID_SIZE], Ship *ship, int row, int col, char *orientation)
+{
     int carl = 0, carl1 = 0;
-    if (strcmp(orientation, "horizontal") == 0) {
+    if (strcmp(orientation, "horizontal") == 0)
+    {
         carl1 = 1;
-    } else if (strcmp(orientation, "vertical") == 0) {
+    }
+    else if (strcmp(orientation, "vertical") == 0)
+    {
         carl = 1;
-    } else {
+    }
+    else
+    {
         return 0;
     }
 
-    if (row < 0 || col < 0 || row >= GRID_SIZE || col >= GRID_SIZE ||
-        row + carl * (ship->size - 1) >= GRID_SIZE || col + carl1 * (ship->size - 1) >= GRID_SIZE) {
+    if (row < 0 || col < 0 || row >= GRID_SIZE || col >= GRID_SIZE || row + carl * (ship->size - 1) >= GRID_SIZE || col + carl1 * (ship->size - 1) >= GRID_SIZE)// here qwe check if the boat length and the location we p[laecd it on cause the boat to exit the grid]
+    {
         return 0;
     }
 
-    for (int i = 0; i < ship->size; i++) {
-        if (grid[row + dr * i][col + carl1 * i].hasShip) {
+    for (int i = 0; i < ship->size; i++) // here we check if the boat we placed is in a place or might go over a boat 
+    {
+        if (grid[row + dr * i][col + carl1 * i].hasShip)
+        {
             return 0;
         }
     }
 
-    for (int i = 0; i < ship->size; i++) {
+    for (int i = 0; i < ship->size; i++) // if both conditions are false we place the ship
+    {
         grid[row + dr * i][col + carl1 * i].hasShip = 1;
         ship->coordinates[i][0] = row + carl * i;
         ship->coordinates[i][1] = col + carl1 * i;
     }
     return 1;
+}
+
+void performMove(Player *attacker, Player *defender, int trackingDifficulty) { // here we take input from the user for a locationa nd the move he wants like fire torpedo artillary , sweep....
+    char input[50];
+    printf("\n%s's turn.\n", attacker->name);
+    displayGrid(defender->grid, trackingDifficulty);
+    showMoveOptions(attacker);
+
+    printf("Enter your move: ");
+    fgets(input, sizeof(input), stdin);
+    input[strcspn(input, "\n")] = '\0';  
+
+    if (strncmp(input, "Fire", 4) == 0) {
+        char coord[10];
+        if (sscanf(input, "Fire %s", coord) == 1) {
+            performFire(attacker, defender, coord);// waiting for this func to be implemented later
+        } else {
+            printf("Invalid command format. You lose your turn.\n");
+        }
+    } else if (strncmp(input, "Radar", 5) == 0) {
+        if (attacker->radarCount > 0) {
+            char coord[10];
+            if (sscanf(input, "Radar %s", coord) == 1) {
+                performRadar(attacker, defender, coord);// waiting for this func to be implemented later
+            } else {
+                printf("Invalid command format. You lose your turn.\n");
+            }
+        } else {
+            printf("No radar sweeps remaining. You lose your turn.\n");
+        }
+    } else if (strncmp(input, "Smoke", 5) == 0) {
+        if (attacker->smokeCount > 0) {
+            char coord[10];
+            if (sscanf(input, "Smoke %s", coord) == 1) {
+                performSmoke(attacker, coord);// waiting for this func to be implemented later
+            } else {
+                printf("Invalid command format. You lose your turn.\n");
+            }
+        } else {
+            printf("No smoke screens available. You lose your turn.\n");
+        }
+    } else if (strncmp(input, "Artillery", 9) == 0) {
+        if (attacker->artilleryAvailable) {
+            char coord[10];
+            if (sscanf(input, "Artillery %s", coord) == 1) {
+                performArtillery(attacker, defender, coord);// waiting for this func to be implemented later
+                attacker->artilleryAvailable = 0;  
+            } else {
+                printf("Invalid command format. You lose your turn.\n");
+            }
+        } else {
+            printf("Artillery not available. You lose your turn.\n");
+        }
+    } else if (strncmp(input, "Torpedo", 7) == 0) {
+        if (attacker->torpedoAvailable) {
+            char param[10];
+            if (sscanf(input, "Torpedo %s", param) == 1) {
+                performTorpedo(attacker, defender, param);// waiting for this func to be implemented later
+                attacker->torpedoAvailable = 0; 
+            } else {
+                printf("Invalid command format. You lose your turn.\n");
+            }
+        } else {
+            printf("Torpedo not available. You lose your turn.\n");
+        }
+    } else {
+        printf("Invalid command. You lose your turn.\n");
+    }
 }
