@@ -60,52 +60,14 @@ int checkWinCondition(Player *player);
 void gameLoop(Player *player1, Player *player2, int trackingDifficulty);
 void clearScreen();
 void clearInputBuffer();
-void Guess_Maker(char Battle_Floor_General[N][N], char Difficulty[5]) // no need to do difficulty manager if we have here 
-{
 
-    char col;
-    int row;
-
-    printf("Enter your guess: ");
-    scanf(" %c%d", &col, &row);
-
-    int Column_Index = col - 'A'; // hon we just check the index using ascii code w the one under we do -1 to get index 0
-    int Row_Index = row - 1;
-
-    if (Row_Index >= 0 && Row_Index < N && Column_Index >= 0 && Column_Index < N)
-    {
-        if (Battle_Floor_General[Row_Index][Column_Index] == '~')
-        {
-            printf("LOSER you missed :) \n");
-            if (Difficulty == "easy")
-            {
-                Battle_Floor_General[Row_Index][Column_Index] = 'X';
-            }
-        }
-        else if (Battle_Floor_General[Row_Index][Column_Index] == 'h')
-        {
-            printf("You already shot there\n");
-        }
-        else
-        {
-            printf("Bravo Darabta\n");
-            Battle_Floor_General[Row_Index][Column_Index] = 'h';
-        }
-    }
-    else
-    {
-        printf("Choose a number from a-j and number 1-10\n");
-    }
-}
 
 
 int main() {
-    srand(time(NULL));
+    srand(time(NULL)); // to randomize dr zalgout said we can do it like dr zalghout said 
 
     Player player1, player2;
     int trackingDifficulty;
-
-    printf("Welcome to Advanced Battleship!\n");
 
     trackingDifficulty = getTrackingDifficulty();
 
@@ -115,7 +77,6 @@ int main() {
     initializePlayer(&player2);
     clearScreen();
 
-    // Each player places their ships
     printf("\n%s, place your ships.\n", player1.name);
     placeShips(&player1);
     clearScreen();
@@ -124,7 +85,6 @@ int main() {
     placeShips(&player2);
     clearScreen();
 
-    // Randomly choose the first player
     Player *currentPlayer, *opponent;
     if (rand() % 2 == 0) {
         currentPlayer = &player1;
@@ -135,8 +95,18 @@ int main() {
     }
     printf("%s will go first.\n", currentPlayer->name);
 
-    // Start the game loop
     gameLoop(currentPlayer, opponent, trackingDifficulty);
 
     return 0;
+}
+
+void initializeGrid(GridCell grid[GRID_SIZE][GRID_SIZE]) {
+    for (int i = 0; i < GRID_SIZE; i++) {
+        for (int j = 0; j < GRID_SIZE; j++) {
+            grid[i][j].display = '~';
+            grid[i][j].hasShip = 0;
+            grid[i][j].isHit = 0;
+            grid[i][j].hasSmoke = 0;
+        }
+    }
 }
