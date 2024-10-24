@@ -461,3 +461,24 @@ void performArtillery(Player *attacker, Player *defender, char *coord) {// perfo
     }
 }
 
+
+// implement perform torpedo im not sure if im doing it correct 
+//Ahmad, Rayyan< housni please check it out 
+
+void updateShipStatus(Player *player, int row, int col) {//uupdates if the ship got hit, snak 
+    for (int i = 0; i < NUM_SHIPS; i++) {
+        Ship *ship = &player->ships[i];
+        for (int j = 0; j < ship->size; j++) {
+            if (ship->coordinates[j][0] == row && ship->coordinates[j][1] == col) {
+                ship->hits++;
+                if (ship->hits == ship->size && !ship->sunk) {
+                    ship->sunk = 1;
+                    player->shipsSunk++;
+                    printf("You sunk %s's %s!\n", player->name, ship->name);
+                    unlockSpecialMoves(player);// after sinking the ship you unlock artillary and torpedo
+                }
+                return;
+            }
+        }
+    }
+}
