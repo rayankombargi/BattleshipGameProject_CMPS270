@@ -423,4 +423,41 @@ void performSmoke(Player *player, char *coord) {// performs the smoke screen
     printf("Smoke screen deployed.\n");
 }
 
+void performArtillery(Player *attacker, Player *defender, char *coord) {// performs artillary 
+    int row, col;
+    if (sscanf(coord, "%c%d", &coord[0], &row) != 2) {
+        printf("Invalid coordinate format. You lose your turn.\n");
+        return;
+    }
+    row -= 1;
+    col = toupper(coord[0]) - 'A';
+
+    if (row < 0 || row >= GRID_SIZE - 1 || col < 0 || col >= GRID_SIZE - 1) {
+        printf("Invalid coordinates. You lose your turn.\n");
+        return;
+    }
+
+    int hit = 0;
+    for (int i = row; i <= row + 1; i++) {
+        for (int j = col; j <= col + 1; j++) {
+            GridCell *cell = &defender->grid[i][j];
+            if (!cell->isHit) {
+                cell->isHit = 1;
+                if (cell->hasShip) {
+                    cell->display = '*';
+                    updateShipStatus(defender, i, j);
+                    hit = 1;
+                } else {
+                    cell->display = 'o';
+                }
+            }
+        }
+    }
+
+    if (hit) {
+        printf("Artillery strike hit enemy ships!\n");
+    } else {
+        printf("Artillery strike missed.\n");
+    }
+}
 
