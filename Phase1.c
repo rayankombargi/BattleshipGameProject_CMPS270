@@ -482,3 +482,16 @@ void updateShipStatus(Player *player, int row, int col) {//uupdates if the ship 
         }
     }
 }
+
+void unlockSpecialMoves(Player *player) { //giving player the special powers 
+    player->smokeCount++;
+
+    if (player->shipsSunk == 1) {
+        player->artilleryAvailable = 1;
+        printf("%s has unlocked Artillery for the next turn!\n", player->name);
+    }
+    if (player->shipsSunk == 3) {
+        player->torpedoAvailable = 1;
+        printf("%s has unlocked Torpedo for the next turn!\n", player->name);
+    }
+}
