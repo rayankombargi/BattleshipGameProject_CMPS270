@@ -518,3 +518,68 @@ void gameLoop(Player *currentPlayer, Player *opponent, int trackingDifficulty) {
         opponent = temp;
     }
 }
+
+void clearScreen() {
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
+}
+
+void clearInputBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) {
+       
+}
+void performTorpedo(Player *attacker, Player *defender, char *input) {
+    char rc = toupper(input[0]);
+    int index;
+    int hit = 0;
+
+    if (isalpha(rc)) {
+        index = rc - 'A';
+        if (index < 0 || index >= GRID_SIZE) {
+            printf("Invalid column. You lose your turn.\n");
+            return;
+        }
+        for (int i = 0; i < GRID_SIZE; i++) {
+            GridCell *cell = &defender->grid[i][index];
+            if (!cell->isHit) {
+                cell->isHit = 1;
+                if (cell->hasShip) {
+                    cell->display = '*';
+                    updateShipStatus(defender, i, index);
+                    hit = 1;
+                } else {
+                    cell->display = 'o';
+                }
+            }
+        }
+    } else {
+        index = atoi(input) - 1;
+        if (index < 0 || index >= GRID_SIZE) {
+            printf("Invalid row. You lose your turn.\n");
+            return;
+        }
+        for (int j = 0; j < GRID_SIZE; j++) {
+            GridCell *cell = &defender->grid[index][j];
+            if (!cell->isHit) {
+                cell->isHit = 1;
+                if (cell->hasShip) {
+                    cell->display = '*';
+                    updateShipStatus(defender, index, j);
+                    hit = 1;
+                } else {
+                    cell->display = 'o';
+                }
+            }
+        }
+    }
+
+    if (hit) {
+        printf("Torpedo hit enemy ships!\n");
+    } else {
+        printf("Torpedo missed.\n");
+    }
+}
