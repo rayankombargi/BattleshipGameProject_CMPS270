@@ -689,4 +689,5 @@ void clearInputBuffer()
     while ((c = getchar()) != '\n' && c != EOF)
     {
     }
+    // to fix my branch
 }
