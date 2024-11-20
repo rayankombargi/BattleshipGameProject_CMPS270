@@ -15,3 +15,5 @@ Fixed the Random variable. Added three new functions StartTurn, MovePicker and P
 
 Nov 20 2024
 Added a new file Phase2.c where I replaced player2 with bot. The bot can now randomly place its own ships.
+
+Attempted to make the bot input move commands. Still broken. Bug: Bot and Player names are switched up during the game.
