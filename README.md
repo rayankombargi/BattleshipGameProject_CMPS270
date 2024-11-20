@@ -10,3 +10,8 @@ Added Carl's Ship_Placement method, included its prototype. Implemented a for lo
 
 Oct 23 2024
 Fixed the Random variable. Added three new functions StartTurn, MovePicker and PlayerLost. Added Player struct which contains Name and grid.
+
+
+
+Nov 20 2024
+Added a new file Phase2.c where I replaced player2 with bot. The bot can now randomly place its own ships.
