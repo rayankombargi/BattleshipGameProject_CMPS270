@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <windows.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -45,7 +47,9 @@ void initializeBot(Player *bot);
 void placeShips(Player *player);
 void BotPlaceShips(Player *bot);
 int validateAndPlaceShip(GridCell grid[GRID_SIZE][GRID_SIZE], Ship *ship, int row, int col, char *orientation);
+void Move(Player *attacker, Player *defender, char * input);
 void performMove(Player *attacker, Player *defender, int trackingDifficulty);
+void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty);
 void showMoveOptions(Player *player);
 void performFire(Player *attacker, Player *defender, char *coord);
 void performRadar(Player *attacker, Player *defender, char *coord);
@@ -75,14 +79,18 @@ int main() {
     initializeBot(&bot);
 
     printf("\n%s, place your ships.\n", player.name);
-    // placeShips(&player);                 // Skipped the process of the player to put his/her Ships
+    placeShips(&player);                 // Skipped the process of the player to put his/her Ships
     clearScreen();
 
     BotPlaceShips(&bot);
+    Sleep(2000);
+    clearScreen();
 
 
     Player *currentPlayer, *opponent;
-    if (rand() % 2 == 0) {
+
+    int FirstPlayer = rand() % 2;
+    if (FirstPlayer == 0) {
         currentPlayer = &player;
         opponent = &bot;
     } else {
@@ -91,7 +99,7 @@ int main() {
     }
     printf("%s will go first.\n", currentPlayer->name);
 
-    // gameLoop(currentPlayer, opponent, trackingDifficulty);     // the gameLoop method is under development
+    gameLoop(currentPlayer, opponent, trackingDifficulty);     // the gameLoop method is under development
 
     return 0;
 }
@@ -161,7 +169,7 @@ void initializePlayer(Player *player) { // got help from my friend (Fadel) on th
 }
 
 void initializeBot(Player *bot) {
-    strcpy(bot->name, "Bot");
+    strncpy(bot->name, "Bot", 3);
     initializeGrid(bot->grid);
     bot->radarCount = MAX_RADAR_SWEEPS;
     bot->smokeCount = 0;
@@ -288,17 +296,7 @@ int validateAndPlaceShip(GridCell grid[GRID_SIZE][GRID_SIZE], Ship *ship, int ro
     return 1;
 }
 
-void performMove(Player *attacker, Player *defender, int trackingDifficulty)
-{
-    char input[50];
-    printf("\n%s's turn.\n", attacker->name);
-    displayGrid(defender->grid, trackingDifficulty);
-    showMoveOptions(attacker);
-
-    printf("Enter your move: ");
-    fgets(input, sizeof(input), stdin);
-    input[strcspn(input, "\n")] = '\0';
-
+void Move(Player *attacker, Player *defender, char * input) {
     if (strncmp(input, "Fire", 4) == 0)
     {
         char coord[10];
@@ -393,6 +391,53 @@ void performMove(Player *attacker, Player *defender, int trackingDifficulty)
     {
         printf("Invalid command. You lose your turn.\n");
     }
+
+
+}
+void performMove(Player *attacker, Player *defender, int trackingDifficulty)
+{
+    char input[50];
+    printf("\n%s's turn.\n", attacker->name);
+    displayGrid(defender->grid, trackingDifficulty);
+    showMoveOptions(attacker);
+
+    printf("Enter your move: ");
+    fgets(input, sizeof(input), stdin);
+    input[strcspn(input, "\n")] = '\0';
+
+    Move(attacker, defender, input);
+}
+
+void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty) {
+    srand(time(NULL));
+    char input[50];
+    printf("\n%s's turn.\n", attacker->name);
+    displayGrid(defender->grid, trackingDifficulty);
+    showMoveOptions(attacker);
+
+    printf("Enter your move: ");
+
+    int randMove = rand() % 5;
+    if ( randMove == 0 ) {
+        strncpy(input, "Fire", 4);
+    }
+    else if ( randMove == 1 ) {
+        strncpy(input, "Radar", 5);
+    }
+    else if ( randMove == 2 ) {
+        strncpy(input, "Smoke", 5);
+    }
+    else if ( randMove == 3 ) {
+        strncpy(input, "Artillery", 9);
+    }
+    else if ( randMove == 4 ) {
+        strncpy(input, "Torpedo", 7);
+    }
+
+    Sleep(2000);
+    printf("%s\n", input);
+
+    Move(attacker, defender, input);
 }
 
 void showMoveOptions(Player *player)
@@ -408,6 +453,8 @@ void showMoveOptions(Player *player)
     if (player->torpedoAvailable)
         printf("- Torpedo [row/column] (Available)\n");
 }
+
+
 
 void performFire(Player *attacker, Player *defender, char *coord)
 {
@@ -699,15 +746,25 @@ void gameLoop(Player *currentPlayer, Player *opponent, int trackingDifficulty)
 {
     while (1)
     {
-        performMove(currentPlayer, opponent, trackingDifficulty);
+        if (strncmp(opponent->name, "Bot", 3))
+        {
+            performMove(currentPlayer, opponent, trackingDifficulty);
+            Sleep(2000);
+        }
+        else {
+            BotPerformMove(currentPlayer, opponent, trackingDifficulty);
+            Sleep(5000);
+        }
         if (checkWinCondition(opponent))
         {
             printf("\n%s wins the game!\n", currentPlayer->name);
             break;
         }
+
         Player *temp = currentPlayer;
         currentPlayer = opponent;
         opponent = temp;
+        clearScreen();
     }
 }
 
