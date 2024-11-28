@@ -17,3 +17,8 @@ Nov 20 2024
 Added a new file Phase2.c where I replaced player2 with bot. The bot can now randomly place its own ships.
 
 Attempted to make the bot input move commands. Still broken. Bug: Bot and Player names are switched up during the game.
+
+Nov 28 2024
+Fixed the issue where the bot's turn uses player's name and vice-versa.
+Fixed the incorrect placement of Bot's ships. 
+Corrected the functionality of UnlockSpecialMoves.
