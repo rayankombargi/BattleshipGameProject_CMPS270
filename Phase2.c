@@ -38,28 +38,41 @@ typedef struct {
     int shipsSunk;
 } Player;
 
+typedef struct {
+    int hitFound;
+    enum decision {FireSearch, RadarSearch} dec;
+    char Target[2];
+    char current[2];
+    enum direction {Up, Down, Left, Right} dir;
+    int row, col, i, j;
+} Memory;
+
 
 void initializeGrid(GridCell grid[GRID_SIZE][GRID_SIZE]);
 void displayGrid(GridCell grid[GRID_SIZE][GRID_SIZE], int trackingDifficulty);
 int getTrackingDifficulty();
 void initializePlayer(Player *player);
 void initializeBot(Player *bot);
+void initializeMemory(Memory *mem);
 void placeShips(Player *player);
 void BotPlaceShips(Player *bot);
 int validateAndPlaceShip(GridCell grid[GRID_SIZE][GRID_SIZE], Ship *ship, int row, int col, char *orientation);
-void Move(Player *attacker, Player *defender, char * input);
-void performMove(Player *attacker, Player *defender, int trackingDifficulty);
-void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty);
+void Move(Player *attacker, Player *defender, char * input, Memory *mem);
+void performMove(Player *attacker, Player *defender, Memory *mem, int trackingDifficulty);
+void BotPerformMove(Player *attacker, Player *defender, Memory *mem, int trackingDifficulty);
+void BotDecision(Player *attacker, Player *defender, Memory *mem);
 void showMoveOptions(Player *player);
-void performFire(Player *attacker, Player *defender, char *coord);
-void performRadar(Player *attacker, Player *defender, char *coord);
+void SearchFire(Player *attacker, Player *defender, char *coord, Memory *mem);
+void SearchRadar(Player *attacker, Player *defender, char *coord, Memory *mem);
+void performFire(Player *attacker, Player *defender, char *coord, Memory *mem);
+void performRadar(Player *attacker, Player *defender, char *coord, Memory *mem);
 void performSmoke(Player *player, char *coord);
-void performArtillery(Player *attacker, Player *defender, char *coord);
-void performTorpedo(Player *attacker, Player *defender, char *input);
+void performArtillery(Player *attacker, Player *defender, char *coord, Memory *mem);
+void performTorpedo(Player *attacker, Player *defender, char *input, Memory *mem);
 void updateShipStatus(Player *player, int row, int col, Player *attacker);
 void unlockSpecialMoves(Player *defender, Player *attacker);
 int checkWinCondition(Player *player);
-void gameLoop(Player *player1, Player *player2, int trackingDifficulty);
+void gameLoop(Player *player1, Player *player2, Memory *mem, int trackingDifficulty);
 void clearScreen();
 void clearInputBuffer();
 
@@ -69,6 +82,10 @@ int main() {
     srand(time(NULL)); // to randomize dr zalgout said we can do it like dr zalghout said 
 
     Player player, bot;
+    
+    Memory m;
+    initializeMemory(&m);
+
     int trackingDifficulty;
 
     trackingDifficulty = getTrackingDifficulty();
@@ -86,7 +103,6 @@ int main() {
     Sleep(7000);
     clearScreen();
 
-
     Player *currentPlayer, *opponent;
 
     int FirstPlayer = rand() % 2;
@@ -99,7 +115,8 @@ int main() {
     }
     printf("%s will go first.\n", currentPlayer->name);
 
-    gameLoop(currentPlayer, opponent, trackingDifficulty);     // the gameLoop method is under development
+    Memory *mem = &m;
+    gameLoop(currentPlayer, opponent, mem, trackingDifficulty);     // the gameLoop method is under development
 
     return 0;
 }
@@ -194,6 +211,15 @@ void initializeBot(Player *bot) {
         bot->ships[i].sunk = 0;
         memset(bot->ships[i].coordinates, 0, sizeof(bot->ships[i].coordinates));
     }
+}
+
+void initializeMemory(Memory *mem) {
+    mem->hitFound = 0;
+    mem->dec = FireSearch;
+    strcpy(mem->Target,"  ");       strcpy(mem->current,"  ");
+    mem->dir = Down;
+    mem->row = 0;   mem->col = 0;
+    mem->i = 0; mem->j = 0;
 }
 
 void placeShips(Player *player)
@@ -303,13 +329,13 @@ int validateAndPlaceShip(GridCell grid[GRID_SIZE][GRID_SIZE], Ship *ship, int ro
     return 1;
 }
 
-void Move(Player *attacker, Player *defender, char * input) {
+void Move(Player *attacker, Player *defender,char * input, Memory *mem) {
     if (strncmp(input, "Fire", 4) == 0)
     {
         char coord[10];
         if (sscanf(input, "Fire %s", coord) == 1)
         {
-            performFire(attacker, defender, coord);
+            performFire(attacker, defender, coord, mem);
         }
         else
         {
@@ -323,7 +349,7 @@ void Move(Player *attacker, Player *defender, char * input) {
             char coord[10];
             if (sscanf(input, "Radar %s", coord) == 1)
             {
-                performRadar(attacker, defender, coord);
+                performRadar(attacker, defender, coord, mem);
             }
             else
             {
@@ -361,7 +387,7 @@ void Move(Player *attacker, Player *defender, char * input) {
             char coord[10];
             if (sscanf(input, "Artillery %s", coord) == 1)
             {
-                performArtillery(attacker, defender, coord);
+                performArtillery(attacker, defender, coord, mem);
                 attacker->artilleryAvailable = 0; // Can use only once
             }
             else
@@ -381,7 +407,7 @@ void Move(Player *attacker, Player *defender, char * input) {
             char param[10];
             if (sscanf(input, "Torpedo %s", param) == 1)
             {
-                performTorpedo(attacker, defender, param);
+                performTorpedo(attacker, defender, param, mem);
                 attacker->torpedoAvailable = 0; // Can use only once
             }
             else
@@ -401,7 +427,7 @@ void Move(Player *attacker, Player *defender, char * input) {
 
 
 }
-void performMove(Player *attacker, Player *defender, int trackingDifficulty)
+void performMove(Player *attacker, Player *defender, Memory *mem, int trackingDifficulty)
 {
     char input[50];
     printf("\n%s's turn.\n", attacker->name);
@@ -412,41 +438,89 @@ void performMove(Player *attacker, Player *defender, int trackingDifficulty)
     fgets(input, sizeof(input), stdin);
     input[strcspn(input, "\n")] = '\0';
 
-    Move(attacker, defender, input);
+    Move(attacker, defender, input, mem);
 }
 
-void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty) {
-    srand(time(NULL));
-    char input[50];
+void BotPerformMove(Player *attacker, Player *defender, Memory *mem, int trackingDifficulty) {
     printf("\n%s's turn.\n", attacker->name);
     displayGrid(defender->grid, trackingDifficulty);
     showMoveOptions(attacker);
 
     printf("Enter your move: ");
 
-    int randMove = rand() % 5;
-    if ( randMove == 0 ) {
-        strncpy(input, "Fire", 4);
-    }
-    else if ( randMove == 1 ) {
-        strncpy(input, "Radar", 5);
-    }
-    else if ( randMove == 2 ) {
-        strncpy(input, "Smoke", 5);
-    }
-    else if ( randMove == 3 ) {
-        strncpy(input, "Artillery", 9);
-    }
-    else if ( randMove == 4 ) {
-        strncpy(input, "Torpedo", 7);
-    }
-
     Sleep(2000);
-    printf("%s\n", input);
 
-    Move(attacker, defender, input);
+    BotDecision(attacker, defender, mem);
+
+    // Move(attacker, defender, input);
 }
 
+void BotDecision(Player *attacker, Player *defender, Memory *mem) {
+    srand(time(NULL));
+
+    enum command {Fire, Radar, Smoke, Artillery, Torpedo} mve;
+    if (!mem->hitFound) {
+
+        if (attacker->radarCount > 0) {
+            int action = rand() % 4;
+            if (action == 0) {
+                mve = Radar;
+            } else if (action == 1 || action == 2 || action == 3){
+                mve = Fire;
+            }
+        }
+        else {
+            mve = Fire;
+        }
+
+        int row = 0; int col = 0;
+        do {
+            row = rand() % 10;
+            col = rand() % 10;
+        } while(defender->grid[row][col].isHit);
+
+        char letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+
+        char coord[2];  sprintf(coord, "%c%d", letter, row+1);
+        
+        if (mve == Radar) {
+            printf("Radar %s\n", coord);
+            performRadar(attacker, defender, coord, mem);
+        } else if (mve == Fire) {
+            printf("Fire %s\n", coord);
+            performFire(attacker, defender, coord, mem);
+        }
+    } else {
+        if (mem->dec == RadarSearch) {
+            if (attacker->artilleryAvailable) {
+                performArtillery(attacker, defender, mem->Target, mem);
+            } //else 
+                //SearchRadar(attacker, defender, mem->Target, mem);
+        } else if (mem->dec == FireSearch) {
+            // SearchFire
+        }
+            
+    }
+
+}
+void SearchFire(Player *attacker, Player *defender, char *coord, Memory *mem) {
+    // To be continued
+}
+
+void SearchRadar(Player *attacker, Player *defender, char *coord, Memory *mem) {
+    char localCoord[2];
+    int *row, *col;
+
+    row = &mem->row;
+    col = &mem->col;
+
+    // Update the coordinates for each turn
+
+    char letter = (char)(64 + mem->col+1); // ASCII conversion of the value of the col integer into its corresponding character  
+
+    sprintf(localCoord, "%c%d", letter, row);
+    performFire(attacker, defender, localCoord, mem);
+}
 void showMoveOptions(Player *player)
 {
     printf("Available moves:\n");
@@ -463,7 +537,7 @@ void showMoveOptions(Player *player)
 
 
 
-void performFire(Player *attacker, Player *defender, char *coord)
+void performFire(Player *attacker, Player *defender, char *coord, Memory *mem)
 {
     int row, col;
     if (sscanf(coord, "%c%d", &coord[0], &row) != 2)
@@ -495,6 +569,12 @@ void performFire(Player *attacker, Player *defender, char *coord)
         cell->display = '*';
         printf("Hit!\n");
         updateShipStatus(defender, row, col, attacker);
+        if (strcmp(attacker->name, "bot") == 0)
+        {
+            mem->hitFound = 1;
+            strncpy(mem->Target, coord, sizeof(coord));
+            mem->dec = FireSearch;
+        }
     }
     else
     {
@@ -503,7 +583,7 @@ void performFire(Player *attacker, Player *defender, char *coord)
     }
 }
 
-void performRadar(Player *attacker, Player *defender, char *coord)
+void performRadar(Player *attacker, Player *defender, char *coord, Memory *mem)
 {
     int row, col;
     if (sscanf(coord, "%c%d", &coord[0], &row) != 2)
@@ -540,6 +620,12 @@ void performRadar(Player *attacker, Player *defender, char *coord)
     if (found)
     {
         printf("Enemy ships found.\n");
+        if (strcmp(attacker->name, "bot") == 0)
+        {
+            mem->hitFound = 1;
+            strncpy(mem->Target, coord, sizeof(coord));
+            mem->dec = RadarSearch;
+        }
     }
     else
     {
@@ -577,7 +663,7 @@ void performSmoke(Player *player, char *coord)
     printf("Smoke screen deployed.\n");
 }
 
-void performArtillery(Player *attacker, Player *defender, char *coord)
+void performArtillery(Player *attacker, Player *defender, char *coord, Memory *mem)
 {
     int row, col;
     if (sscanf(coord, "%c%d", &coord[0], &row) != 2)
@@ -627,7 +713,7 @@ void performArtillery(Player *attacker, Player *defender, char *coord)
     }
 }
 
-void performTorpedo(Player *attacker, Player *defender, char *input)
+void performTorpedo(Player *attacker, Player *defender, char *input, Memory *mem)
 {
     char rc = toupper(input[0]);
     int index;
@@ -749,17 +835,17 @@ int checkWinCondition(Player *player)
     return 1;
 }
 
-void gameLoop(Player *currentPlayer, Player *opponent, int trackingDifficulty)
+void gameLoop(Player *currentPlayer, Player *opponent, Memory *mem, int trackingDifficulty)
 {
     while (1)
     {
         if (!strncmp(opponent->name, "Bot", 3))
         {
-            performMove(currentPlayer, opponent, trackingDifficulty);
+            performMove(currentPlayer, opponent, mem, trackingDifficulty);
             Sleep(3000);
         }
         else {
-            BotPerformMove(currentPlayer, opponent, trackingDifficulty);
+            BotPerformMove(currentPlayer, opponent, mem, trackingDifficulty);
             Sleep(3000);
         }
         if (checkWinCondition(opponent))
