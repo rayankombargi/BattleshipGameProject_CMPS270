@@ -56,8 +56,8 @@ void performRadar(Player *attacker, Player *defender, char *coord);
 void performSmoke(Player *player, char *coord);
 void performArtillery(Player *attacker, Player *defender, char *coord);
 void performTorpedo(Player *attacker, Player *defender, char *input);
-void updateShipStatus(Player *player, int row, int col);
-void unlockSpecialMoves(Player *player);
+void updateShipStatus(Player *player, int row, int col, Player *attacker);
+void unlockSpecialMoves(Player *defender, Player *attacker);
 int checkWinCondition(Player *player);
 void gameLoop(Player *player1, Player *player2, int trackingDifficulty);
 void clearScreen();
@@ -83,7 +83,7 @@ int main() {
     clearScreen();
 
     BotPlaceShips(&bot);
-    Sleep(2000);
+    Sleep(7000);
     clearScreen();
 
 
@@ -93,7 +93,7 @@ int main() {
     if (FirstPlayer == 0) {
         currentPlayer = &player;
         opponent = &bot;
-    } else {
+    } else if (FirstPlayer == 1) {
         currentPlayer = &bot;
         opponent = &player;
     }
@@ -146,9 +146,16 @@ int getTrackingDifficulty() {
 }
 
 void initializePlayer(Player *player) { // got help from my friend (Fadel) on this due to some errors 
-    printf("Enter player name: ");
-    fgets(player->name, sizeof(player->name), stdin);
-    player->name[strcspn(player->name, "\n")] = '\0'; 
+    do {
+        printf("Enter player name: ");
+        fgets(player->name, sizeof(player->name), stdin);
+        player->name[strcspn(player->name, "\n")] = '\0'; 
+        if (!strcmp(player->name, "Bot")) {
+            printf("Player's name cannot be 'Bot', try again.\n");
+        }
+    }
+    while (!strncmp(player->name, "Bot", 3));
+
     initializeGrid(player->grid);
     player->radarCount = MAX_RADAR_SWEEPS;
     player->smokeCount = 0;
@@ -240,8 +247,8 @@ void BotPlaceShips(Player *bot)
         while (!validPlacement)
         {
             int row, col;
-            row = rand() % 10 + 1;
-            col = rand() % 10 + 1;
+            row = rand() % 10;
+            col = rand() % 10;
 
             if ((rand() % 2) == 0)
                 strcpy(orientation, "horizontal");
@@ -251,8 +258,8 @@ void BotPlaceShips(Player *bot)
             validPlacement = validateAndPlaceShip(bot->grid, &bot->ships[i], row, col, orientation);
             if (validPlacement)
             {
-                char letter = (char)(64 + col); // ASCII conversion of the value of the col integer into its corresponding character
-                printf("Bot's %s placed successfully.\t%c%d\t%s\n", bot->ships[i].name, letter, row, orientation);  // Bot's placed ships are visible for debugging purposes
+                char letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+                printf("Bot's %s placed successfully.\t%c%d\t%s\n", bot->ships[i].name, letter, row+1, orientation);  // Bot's placed ships are visible for debugging purposes
             }
         }
     }
@@ -487,7 +494,7 @@ void performFire(Player *attacker, Player *defender, char *coord)
     {
         cell->display = '*';
         printf("Hit!\n");
-        updateShipStatus(defender, row, col);
+        updateShipStatus(defender, row, col, attacker);
     }
     else
     {
@@ -599,7 +606,7 @@ void performArtillery(Player *attacker, Player *defender, char *coord)
                 if (cell->hasShip)
                 {
                     cell->display = '*';
-                    updateShipStatus(defender, i, j);
+                    updateShipStatus(defender, i, j, attacker);
                     hit = 1;
                 }
                 else
@@ -643,7 +650,7 @@ void performTorpedo(Player *attacker, Player *defender, char *input)
                 if (cell->hasShip)
                 {
                     cell->display = '*';
-                    updateShipStatus(defender, i, index);
+                    updateShipStatus(defender, i, index, attacker);
                     hit = 1;
                 }
                 else
@@ -670,7 +677,7 @@ void performTorpedo(Player *attacker, Player *defender, char *input)
                 if (cell->hasShip)
                 {
                     cell->display = '*';
-                    updateShipStatus(defender, index, j);
+                    updateShipStatus(defender, index, j, attacker);
                     hit = 1;
                 }
                 else
@@ -691,7 +698,7 @@ void performTorpedo(Player *attacker, Player *defender, char *input)
     }
 }
 
-void updateShipStatus(Player *player, int row, int col)
+void updateShipStatus(Player *player, int row, int col, Player *attacker)
 {
     for (int i = 0; i < NUM_SHIPS; i++)
     {
@@ -706,7 +713,7 @@ void updateShipStatus(Player *player, int row, int col)
                     ship->sunk = 1;
                     player->shipsSunk++;
                     printf("You sunk %s's %s!\n", player->name, ship->name);
-                    unlockSpecialMoves(player);
+                    unlockSpecialMoves(player, attacker);
                 }
                 return;
             }
@@ -714,19 +721,19 @@ void updateShipStatus(Player *player, int row, int col)
     }
 }
 
-void unlockSpecialMoves(Player *player)
+void unlockSpecialMoves(Player *defender, Player *attacker)
 {
-    player->smokeCount++;
+    attacker->smokeCount++;
 
-    if (player->shipsSunk == 1)
+    if (defender->shipsSunk == 1)
     {
-        player->artilleryAvailable = 1;
-        printf("%s has unlocked Artillery for the next turn!\n", player->name);
+        attacker->artilleryAvailable = 1;
+        printf("%s has unlocked Artillery for the next turn!\n", attacker->name);
     }
-    if (player->shipsSunk == 3)
+    if (defender->shipsSunk == 3)
     {
-        player->torpedoAvailable = 1;
-        printf("%s has unlocked Torpedo for the next turn!\n", player->name);
+        attacker->torpedoAvailable = 1;
+        printf("%s has unlocked Torpedo for the next turn!\n", attacker->name);
     }
 }
 
@@ -746,14 +753,14 @@ void gameLoop(Player *currentPlayer, Player *opponent, int trackingDifficulty)
 {
     while (1)
     {
-        if (strncmp(opponent->name, "Bot", 3))
+        if (!strncmp(opponent->name, "Bot", 3))
         {
             performMove(currentPlayer, opponent, trackingDifficulty);
-            Sleep(2000);
+            Sleep(3000);
         }
         else {
             BotPerformMove(currentPlayer, opponent, trackingDifficulty);
-            Sleep(5000);
+            Sleep(3000);
         }
         if (checkWinCondition(opponent))
         {
