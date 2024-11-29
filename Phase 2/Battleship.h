@@ -13,6 +13,7 @@
 #define EASY 0
 #define HARD 1
 #define MAX_RADAR_SWEEPS 3
+#define MAX_RADAR_HITS 10 //random number
 
 enum Command {FIRE, RADAR, SMOKE, ARTILLERY, TORPEDO,INVALID};
 
@@ -31,6 +32,11 @@ typedef struct {
     int hasSmoke;   
 } GridCell;
 
+typedef struct{
+    int row;
+    int col;
+}RadarHit;
+
 typedef struct {
     char name[50];
     GridCell grid[GRID_SIZE][GRID_SIZE];
@@ -40,6 +46,8 @@ typedef struct {
     int artilleryAvailable;
     int torpedoAvailable;
     int shipsSunk;
+    int RadarHitsCount;
+    RadarHit RadarHistory[MAX_RADAR_HITS];
 } Player;
 
 typedef struct {
@@ -68,6 +76,7 @@ enum Command getCommandType(const char *input);
 void Move(Player *attacker, Player *defender, char * input);
 void performMove(Player *attacker, Player *defender, int trackingDifficulty);
 void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty);
+int isRadarScanned(Player *attacker, int row, int col);
 void showMoveOptions(Player *player);
 int validateAndParseCoord(const char *coord, int *row, int *col);
 void performFire(Player *attacker, Player *defender, char *coord);
@@ -75,6 +84,7 @@ void performRadar(Player *attacker, Player *defender, char *coord);
 void performSmoke(Player *player, char *coord);
 void performArtillery(Player *attacker, Player *defender, char *coord);
 void performTorpedo(Player *attacker, Player *defender, char *input);
+void botUseRadar(Player *bot, int row, int col);
 void updateShipStatus(Player *player, int row, int col, Player *attacker);
 void unlockSpecialMoves(Player *defender, Player *attacker);
 

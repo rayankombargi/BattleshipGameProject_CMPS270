@@ -156,7 +156,7 @@ void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty) 
     }
 
     printf("Bot chooses: %s\n", input);
-    usleep(3000000);
+    usleep(1000);
 
     // Execute the move
     if (strncmp(input, "Fire", 4) == 0) {
@@ -191,6 +191,21 @@ void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty) 
     } else {
         printf("Invalid move or unavailable command. Bot loses its turn.\n");
     }
+    do{
+        row=rand()%10;
+        col=rand()%10;
+    }
+    while (isRadarScanned(attacker,row,col));
+    botUseRadar(attacker,row,col);
+}
+
+int isRadarScanned(Player *attacker, int row, int col) {
+    for(int i=0;i<attacker->RadarHitsCount; i++)
+    {
+        if(attacker->RadarHistory[i].row==row && attacker->RadarHistory[i].col == col)
+        return 1; 
+    }
+    return 0;
 }
 
 
@@ -239,7 +254,7 @@ void performFire(Player *attacker, Player *defender, char *coord){
         cell->display = 'o';
         printf("Miss.\n");
     }
-    usleep(3000000);
+    usleep(1000);
 }
 
 
@@ -272,7 +287,7 @@ void performRadar(Player *attacker, Player *defender, char *coord){
         printf("No enemy ships found.\n");
     }
     attacker->radarCount--;
-    usleep(3000000);
+    usleep(1000);
 }
 
 
@@ -293,7 +308,7 @@ void performSmoke(Player *player, char *coord){
     player->smokeCount--;
     clearScreen();
     printf("Smoke screen deployed.\n");
-    usleep(3000000);
+    usleep(10000);
 }
 
 
@@ -329,7 +344,7 @@ void performArtillery(Player *attacker, Player *defender, char *coord){
     else{
         printf("Artillery strike missed.\n");
     }
-    usleep(3000000);
+    usleep(10000);
 }
 
 void performTorpedo(Player *attacker, Player *defender, char *input){
@@ -388,7 +403,28 @@ void performTorpedo(Player *attacker, Player *defender, char *input){
     else{
         printf("Torpedo missed.\n");
     }
-    usleep(3000000);
+    usleep(10000);
+}
+
+void botUseRadar(Player *bot, int row, int col){
+    for(int i=0; i< bot->RadarHitsCount;i++){
+        if(bot->RadarHistory[i].row==row && bot->RadarHistory[i].col==col){
+            printf("Area already scanned");
+            return;
+        }
+    }
+    if(bot->RadarHitsCount<MAX_RADAR_HITS){
+        bot->RadarHistory[bot->RadarHitsCount].row = row;
+        bot->RadarHistory[bot->RadarHitsCount].col = col;
+        bot->RadarHitsCount++;
+    }
+
+    if(bot->grid[row][col].hasShip){
+        printf("Radar found a ship at %c%d\n",col+ 'A',row+1);
+    }
+    else
+    printf("Radar did not find a ship at %c%d\n",col+ 'A',row+1);
+
 }
 
 
