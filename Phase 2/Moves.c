@@ -123,42 +123,80 @@ void Move(Player *attacker, Player *defender, char *input) {
 }
 
 
-// this method should be made in a more smart way, not random choice of positions to strike at
+
 void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty) {
-    srand(time(NULL)); // seed the random number generator
+    int row, col;
+    char input[50];
+
     printf("\n%s's turn.\n", attacker->name);
     displayGrid(defender->grid, trackingDifficulty);
     showMoveOptions(attacker);
 
-    printf("Enter your move: ");
 
-    int randMove = rand() % 5;
-    char input[50];
-    
-    // not a smart way to choose the strikes, get a smarter algorithm
-    if (randMove == 0 ) 
-        strncpy(input, "Fire", 4);
-    else if ( randMove == 1 ) 
-        strncpy(input, "Radar", 5);
-    else if ( randMove == 2 ) 
-        strncpy(input, "Smoke", 5);
-    else if ( randMove == 3 ) 
-        strncpy(input, "Artillery", 9);
-    else if ( randMove == 4 ) 
-        strncpy(input, "Torpedo", 7);
+    if (findNextTarget(&row, &col)) {
+        if (attacker->torpedoAvailable){
+            snprintf(input, sizeof(input), "Torpedo %c%d", 'A' + col, row + 1);
+        }
+        else if (attacker->artilleryAvailable){
+            snprintf(input, sizeof(input), "Artillery %c%d", 'A' + col, row + 1);
+        }
+        else{
+            snprintf(input, sizeof(input), "Fire %c%d", 'A' + col, row + 1);
+        }
+    } 
+    else {
+        chooseRandomTarget(&row, &col);
+        if (attacker->radarCount>0){
+            snprintf(input, sizeof(input), "Radar %c%d", 'A' + col, row + 1);
 
+        }
+        else{
+            snprintf(input, sizeof(input), "Fire %c%d", 'A' + col, row + 1);
+        }
+    }
 
-    printf("%s\n", input);
+    printf("Bot chooses: %s\n", input);
     usleep(3000000);
 
-    Move(attacker, defender, input);
+    // Execute the move
+    if (strncmp(input, "Fire", 4) == 0) {
+        char coord[10];
+        sscanf(input, "Fire %s", coord);
+        performFire(attacker, defender, coord);
+        updateBotState(defender, row, col, defender->grid[row][col].hasShip);
+    } 
+    else if (strncmp(input, "Radar", 5) == 0 && attacker->radarCount > 0) {
+        char coord[10];
+        sscanf(input, "Radar %s", coord);
+        performRadar(attacker, defender, coord);
+        attacker->radarCount--;
+    } 
+    else if (strncmp(input, "Smoke", 5) == 0 && attacker->smokeCount > 0) {
+        char coord[10];
+        sscanf(input, "Smoke %s", coord);
+        performSmoke(attacker, coord);
+        attacker->smokeCount--;
+    } 
+    else if (strncmp(input, "Artillery", 9) == 0 && attacker->artilleryAvailable) {
+        char coord[10];
+        sscanf(input, "Artillery %s", coord);
+        performArtillery(attacker, defender, coord);
+        attacker->artilleryAvailable = 0;
+    } 
+    else if (strncmp(input, "Torpedo", 7) == 0 && attacker->torpedoAvailable) {
+        char param[10];
+        sscanf(input, "Torpedo %s", param);
+        performTorpedo(attacker, defender, param);
+        attacker->torpedoAvailable = 0;
+    } else {
+        printf("Invalid move or unavailable command. Bot loses its turn.\n");
+    }
 }
 
 
 int validateAndParseCoord(const char *coord, int *row, int *col) {
     char columnLetter;
 
-    // Extract the column letter and row number from the input string
     if (sscanf(coord, "%c%d", &columnLetter, row) != 2) 
         return 0;
 
@@ -351,4 +389,54 @@ void performTorpedo(Player *attacker, Player *defender, char *input){
         printf("Torpedo missed.\n");
     }
     usleep(3000000);
+}
+
+
+void initializeBotState() {
+    for (int i = 0; i < GRID_SIZE; i++) {
+        for (int j = 0; j < GRID_SIZE; j++) {
+            botState.hits[i][j] = -1; // set to unexplored
+            botState.pendingHits[i][j] = 0;
+        }
+    }
+}
+
+void updateBotState(Player *defender, int row, int col, int hit) {
+    botState.hits[row][col] = hit;
+    if (hit) {
+        botState.pendingHits[row][col] = 1;
+    }
+}
+
+int findNextTarget(int *row, int *col) {
+    for (int i = 0; i < GRID_SIZE; i++) {
+        for (int j = 0; j < GRID_SIZE; j++) {
+            if (botState.pendingHits[i][j]) {
+                if (i > 0 && botState.hits[i - 1][j] == -1) { // potetial target above current cell
+                    *row = i - 1; *col = j; 
+                    return 1; 
+                }
+                if (i < GRID_SIZE - 1 && botState.hits[i + 1][j] == -1) { // potetial target below current cell
+                    *row = i + 1; *col = j; 
+                    return 1; 
+                }
+                if (j > 0 && botState.hits[i][j - 1] == -1) { // potetial target left current cell
+                    *row = i; *col = j - 1; 
+                    return 1; 
+                }
+                if (j < GRID_SIZE - 1 && botState.hits[i][j + 1] == -1) { 
+                    *row = i; *col = j + 1; 
+                    return 1; 
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+void chooseRandomTarget(int *row, int *col) {
+    do {
+        *row = rand() % GRID_SIZE;
+        *col = rand() % GRID_SIZE;
+    } while (botState.hits[*row][*col] != -1); // -1 if cell is unexplored, otherwise it was either a hit or miss
 }

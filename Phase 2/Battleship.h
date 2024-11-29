@@ -1,4 +1,5 @@
 #ifndef BATTLESHIP_H
+
 #define BATTLESHIP_H
 #include <stdio.h>
 #include <unistd.h>
@@ -41,6 +42,13 @@ typedef struct {
     int shipsSunk;
 } Player;
 
+typedef struct {
+    int hits[GRID_SIZE][GRID_SIZE]; // 1: hit, 0: miss, -1: unexplored
+    int pendingHits[GRID_SIZE][GRID_SIZE]; // 1: needs follow-up, 0: no follow-up needed
+} BotState;
+
+BotState botState;
+
 
 void initializeGrid(GridCell grid[GRID_SIZE][GRID_SIZE]);
 void displayGrid(GridCell grid[GRID_SIZE][GRID_SIZE], int trackingDifficulty);
@@ -69,4 +77,15 @@ void performArtillery(Player *attacker, Player *defender, char *coord);
 void performTorpedo(Player *attacker, Player *defender, char *input);
 void updateShipStatus(Player *player, int row, int col, Player *attacker);
 void unlockSpecialMoves(Player *defender, Player *attacker);
+
+
+
+
+
+void initializeBotState();
+void updateBotState(Player *defender, int row, int col, int hit);
+int findNextTarget(int *row, int *col);
+void chooseRandomTarget(int *row, int *col);
+void initializeBot(Player *bot);
+
 #endif

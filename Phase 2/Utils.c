@@ -1,5 +1,6 @@
 #include "Battleship.h"
 
+
 void initializeGrid(GridCell grid[GRID_SIZE][GRID_SIZE]){
     for (int i = 0; i < GRID_SIZE; i++) {
         for (int j = 0; j < GRID_SIZE; j++) {
@@ -82,11 +83,11 @@ void initializeBot(Player *bot) {
     strncpy(bot->name, "Bot", 3);
     initializeGrid(bot->grid);
     initializePlayerAttributes(bot);
+    initializeBotState();
 
     const char *shipNames[NUM_SHIPS] = {"Carrier", "Battleship", "Destroyer", "Submarine"};
     const int shipSizes[NUM_SHIPS] = {5, 4, 3, 2};
 
-    // delegate the below into a function
     for (int i = 0; i < NUM_SHIPS; i++) {
         strncpy(bot->ships[i].name, shipNames[i], sizeof(bot->ships[i].name));
         bot->ships[i].size = shipSizes[i];
@@ -280,8 +281,9 @@ void gameLoop(Player *currentPlayer, Player *opponent, int trackingDifficulty){
 }
 
 
-
 void clearInputBuffer(){
     int c;
     while ((c = getchar()) != '\n' && c != EOF){}
 }
+
+
