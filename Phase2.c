@@ -11,6 +11,8 @@
 #define HARD 1
 #define MAX_RADAR_SWEEPS 3
 
+enum Command {FIRE, RADAR, SMOKE, ARTILLERY, TORPEDO,INVALID};
+
 typedef struct {
     char name[20];
     int size;
@@ -47,11 +49,14 @@ void initializeBot(Player *bot);
 void placeShips(Player *player);
 void BotPlaceShips(Player *bot);
 int validateAndPlaceShip(GridCell grid[GRID_SIZE][GRID_SIZE], Ship *ship, int row, int col, char *orientation);
-
+enum Command getCommandType(const char *input);
 void Move(Player *attacker, Player *defender, char * input);
 void performMove(Player *attacker, Player *defender, int trackingDifficulty);
 void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty);
 void showMoveOptions(Player *player);
+
+int validateAndParseCoord(const char *coord, int *row, int *col);
+
 void performFire(Player *attacker, Player *defender, char *coord);
 void performRadar(Player *attacker, Player *defender, char *coord);
 void performSmoke(Player *player, char *coord);
@@ -121,9 +126,10 @@ void displayGrid(GridCell grid[GRID_SIZE][GRID_SIZE], int trackingDifficulty){
     for (int i = 0; i < GRID_SIZE; i++) {
         printf("%2d", i + 1);
         for (int j = 0; j < GRID_SIZE; j++) {
-            if (trackingDifficulty == HARD && grid[i][j].isHit == 0) {
+            if (trackingDifficulty == HARD && grid[i][j].isHit == 0){
                 printf(" ~");
-            } else {
+            }
+            else{
                 printf(" %c", grid[i][j].display);
             }
         }
@@ -168,7 +174,6 @@ void initializePlayer(Player *player) {
     initializeGrid(player->grid);
     initializePlayerAttributes(player);
 
-
     const char *shipNames[NUM_SHIPS] = {"Carrier", "Battleship", "Destroyer", "Submarine"}; // make const to avoid modifying
     const int shipSizes[NUM_SHIPS] = {5, 4, 3, 2}; // similarly, make const to avoid modifying
 
@@ -188,10 +193,10 @@ void initializeBot(Player *bot) {
     initializeGrid(bot->grid);
     initializePlayerAttributes(bot);
 
-
     const char *shipNames[NUM_SHIPS] = {"Carrier", "Battleship", "Destroyer", "Submarine"};
     const int shipSizes[NUM_SHIPS] = {5, 4, 3, 2};
 
+    // delegate the below into a function
     for (int i = 0; i < NUM_SHIPS; i++) {
         strncpy(bot->ships[i].name, shipNames[i], sizeof(bot->ships[i].name));
         bot->ships[i].size = shipSizes[i];
@@ -202,10 +207,9 @@ void initializeBot(Player *bot) {
 }
 
 
-void placeShips(Player *player)
-{
-    char coord[10]; // magic number (10), see what to do about them!!!
-    char orientation[15]; // same as above (15)!!
+void placeShips(Player *player){
+    char coord[10]; 
+    char orientation[15]; 
 
     for (int i = 0; i < NUM_SHIPS; i++){
 
@@ -230,11 +234,12 @@ void placeShips(Player *player)
             col = toupper(coord[0]) - 'A'; // convert 'A'-'J' to 0-9
 
             validPlacement = validateAndPlaceShip(player->grid, &player->ships[i], row, col, orientation);
-            if (validPlacement==0)
+            if (!validPlacement){
                 printf("Invalid placement. Try again.\n");
-
-            else
+            }
+            else{
                 printf("Ship placed successfully.\n");
+            }
         }
     }
 }
@@ -253,10 +258,12 @@ void BotPlaceShips(Player *bot){
             row = rand() % 10; // random row 0-9
             col = rand() % 10; // random column 0-9
 
-            if ((rand() % 2) == 0)
+            if ((rand() % 2) == 0){
                 strcpy(orientation, "horizontal");
-            else
+            }
+            else{
                 strcpy(orientation, "vertical");
+            }
 
             validPlacement = validateAndPlaceShip(bot->grid, &bot->ships[i], row, col, orientation);
             if (validPlacement){
@@ -271,22 +278,27 @@ void BotPlaceShips(Player *bot){
 int validateAndPlaceShip(GridCell grid[GRID_SIZE][GRID_SIZE], Ship *ship, int row, int col, char *orientation){
     int dr = 0, dc = 0; // delta row / delta column
 
-    if (strcmp(orientation, "horizontal") == 0)
+    if (strcmp(orientation, "horizontal") == 0){
         dc = 1;
-    else if (strcmp(orientation, "vertical") == 0)
+    }
+    else if (strcmp(orientation, "vertical") == 0){
         dr = 1;
-    else
+    }
+    else{
         return 0;
+    }
 
 
     // Check for any out of bounds problems
-    if (row < 0 || col < 0 || row >= GRID_SIZE || col >= GRID_SIZE || row + dr * (ship->size - 1) >= GRID_SIZE || col + dc * (ship->size - 1) >= GRID_SIZE)
+    if (row < 0 || col < 0 || row >= GRID_SIZE || col >= GRID_SIZE || row + dr * (ship->size - 1) >= GRID_SIZE || col + dc * (ship->size - 1) >= GRID_SIZE){
         return 0;
+    }
 
     // Check if ship overlaps with an existing ship
     for (int i = 0; i < ship->size; i++){
-        if (grid[row + dr * i][col + dc * i].hasShip)
+        if (grid[row + dr * i][col + dc * i].hasShip){
             return 0;
+        }
     }
 
     // Otherwise placement will be successful
@@ -298,102 +310,24 @@ int validateAndPlaceShip(GridCell grid[GRID_SIZE][GRID_SIZE], Ship *ship, int ro
     return 1;
 }
 
-
-void Move(Player *attacker, Player *defender, char *input) {
-    if (strncmp(input, "Fire", 4) == 0){
-        char coord[10];
-        if (sscanf(input, "Fire %s", coord) == 1)
-            performFire(attacker, defender, coord);
-        else
-            printf("Invalid command format. You lose your turn.\n"); 
+void showMoveOptions(Player *player){
+    printf("Available moves:\n");
+    printf("- Fire [coordinate]\n");
+    if (player->radarCount > 0){
+        printf("- Radar [coordinate] (Remaining: %d)\n", player->radarCount);
     }
-    else if (strncmp(input, "Radar", 5) == 0)
-    {
-        if (attacker->radarCount > 0)
-        {
-            char coord[10];
-            if (sscanf(input, "Radar %s", coord) == 1)
-            {
-                performRadar(attacker, defender, coord);
-            }
-            else
-            {
-                printf("Invalid command format. You lose your turn.\n");
-            }
-        }
-        else
-        {
-            printf("No radar sweeps remaining. You lose your turn.\n");
-        }
+    if (player->smokeCount > 0){
+        printf("- Smoke [coordinate] (Available: %d)\n", player->smokeCount);
     }
-    else if (strncmp(input, "Smoke", 5) == 0)
-    {
-        if (attacker->smokeCount > 0)
-        {
-            char coord[10];
-            if (sscanf(input, "Smoke %s", coord) == 1)
-            {
-                performSmoke(attacker, coord);
-            }
-            else
-            {
-                printf("Invalid command format. You lose your turn.\n");
-            }
-        }
-        else
-        {
-            printf("No smoke screens available. You lose your turn.\n");
-        }
+    if (player->artilleryAvailable){
+        printf("- Artillery [coordinate] (Available)\n");
     }
-    else if (strncmp(input, "Artillery", 9) == 0)
-    {
-        if (attacker->artilleryAvailable)
-        {
-            char coord[10];
-            if (sscanf(input, "Artillery %s", coord) == 1)
-            {
-                performArtillery(attacker, defender, coord);
-                attacker->artilleryAvailable = 0; // Can use only once
-            }
-            else
-            {
-                printf("Invalid command format. You lose your turn.\n");
-            }
-        }
-        else
-        {
-            printf("Artillery not available. You lose your turn.\n");
-        }
-    }
-    else if (strncmp(input, "Torpedo", 7) == 0)
-    {
-        if (attacker->torpedoAvailable)
-        {
-            char param[10];
-            if (sscanf(input, "Torpedo %s", param) == 1)
-            {
-                performTorpedo(attacker, defender, param);
-                attacker->torpedoAvailable = 0; // Can use only once
-            }
-            else
-            {
-                printf("Invalid command format. You lose your turn.\n");
-            }
-        }
-        else
-        {
-            printf("Torpedo not available. You lose your turn.\n");
-        }
-    }
-    else
-    {
-        printf("Invalid command. You lose your turn.\n");
+    if (player->torpedoAvailable){
+        printf("- Torpedo [row/column] (Available)\n");
     }
 }
 
-
-void performMove(Player *attacker, Player *defender, int trackingDifficulty)
-{
+void performMove(Player *attacker, Player *defender, int trackingDifficulty){
     char input[50];
     printf("\n%s's turn.\n", attacker->name);
     displayGrid(defender->grid, trackingDifficulty);
@@ -407,9 +341,102 @@ void performMove(Player *attacker, Player *defender, int trackingDifficulty)
 }
 
 
+// Maps each command to an enum
+enum Command getCommandType(const char *input){
+    if (strncmp(input, "Fire", 4) == 0) return FIRE;
+    if (strncmp(input, "Radar", 5) == 0) return RADAR;
+    if (strncmp(input, "Smoke", 5) == 0) return SMOKE;
+    if (strncmp(input, "Artillery", 9) == 0) return ARTILLERY;
+    if (strncmp(input, "Torpedo", 7) == 0) return TORPEDO;
+    return INVALID;
+}
+
+
+void Move(Player *attacker, Player *defender, char *input) {
+    // Get the command type from input
+    enum Command command = getCommandType(input);
+
+    switch (command) {
+        case FIRE: {
+            char coord[10];
+            if (sscanf(input, "Fire %s", coord) == 1) {
+                performFire(attacker, defender, coord);
+            } else {
+                printf("Invalid command format. You lose your turn.\n");
+            }
+            break;
+        }
+
+        case RADAR: {
+            if (attacker->radarCount > 0) {
+                char coord[10];
+                if (sscanf(input, "Radar %s", coord) == 1) {
+                    performRadar(attacker, defender, coord);
+                } else {
+                    printf("Invalid command format. You lose your turn.\n");
+                }
+            } else {
+                printf("No radar sweeps remaining. You lose your turn.\n");
+            }
+            break;
+        }
+
+        case SMOKE: {
+            if (attacker->smokeCount > 0) {
+                char coord[10];
+                if (sscanf(input, "Smoke %s", coord) == 1) {
+                    performSmoke(attacker, coord);
+                } else {
+                    printf("Invalid command format. You lose your turn.\n");
+                }
+            } else {
+                printf("No smoke screens available. You lose your turn.\n");
+            }
+            break;
+        }
+
+        case ARTILLERY: {
+            if (attacker->artilleryAvailable) {
+                char coord[10];
+                if (sscanf(input, "Artillery %s", coord) == 1) {
+                    performArtillery(attacker, defender, coord);
+                    attacker->artilleryAvailable = 0; // Can use only once
+                } else {
+                    printf("Invalid command format. You lose your turn.\n");
+                }
+            } else {
+                printf("Artillery not available. You lose your turn.\n");
+            }
+            break;
+        }
+
+        case TORPEDO: {
+            if (attacker->torpedoAvailable) {
+                char param[10];
+                if (sscanf(input, "Torpedo %s", param) == 1) {
+                    performTorpedo(attacker, defender, param);
+                    attacker->torpedoAvailable = 0; // Can use only once
+                } else {
+                    printf("Invalid command format. You lose your turn.\n");
+                }
+            } else {
+                printf("Torpedo not available. You lose your turn.\n");
+            }
+            break;
+        }
+
+        case INVALID:
+        default: {
+            printf("Invalid command. You lose your turn.\n");
+            break;
+        }
+    }
+}
+
+
+// this method should be made in a more smart way, not random choice of positions to strike at
 void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty) {
-    srand(time(NULL));
-    char input[50];
+    srand(time(NULL)); // seed the random number generator
     printf("\n%s's turn.\n", attacker->name);
     displayGrid(defender->grid, trackingDifficulty);
     showMoveOptions(attacker);
@@ -417,110 +444,91 @@ void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty) 
     printf("Enter your move: ");
 
     int randMove = rand() % 5;
-    if ( randMove == 0 ) {
+    char input[50];
+    
+    // not a smart way to choose the strikes, get a smarter algorithm
+    if (randMove == 0 ) 
         strncpy(input, "Fire", 4);
-    }
-    else if ( randMove == 1 ) {
+    else if ( randMove == 1 ) 
         strncpy(input, "Radar", 5);
-    }
-    else if ( randMove == 2 ) {
+    else if ( randMove == 2 ) 
         strncpy(input, "Smoke", 5);
-    }
-    else if ( randMove == 3 ) {
+    else if ( randMove == 3 ) 
         strncpy(input, "Artillery", 9);
-    }
-    else if ( randMove == 4 ) {
+    else if ( randMove == 4 ) 
         strncpy(input, "Torpedo", 7);
-    }
 
-    usleep(2000);
+    usleep(5000);
     printf("%s\n", input);
 
     Move(attacker, defender, input);
 }
 
 
-void showMoveOptions(Player *player){
-    printf("Available moves:\n");
-    printf("- Fire [coordinate]\n");
-    if (player->radarCount > 0)
-        printf("- Radar [coordinate] (Remaining: %d)\n", player->radarCount);
-    if (player->smokeCount > 0)
-        printf("- Smoke [coordinate] (Available: %d)\n", player->smokeCount);
-    if (player->artilleryAvailable)
-        printf("- Artillery [coordinate] (Available)\n");
-    if (player->torpedoAvailable)
-        printf("- Torpedo [row/column] (Available)\n");
+int validateAndParseCoord(const char *coord, int *row, int *col) {
+    char columnLetter;
+
+    // Extract the column letter and row number from the input string
+    if (sscanf(coord, "%c%d", &columnLetter, row) != 2) 
+        return 0;
+
+    // Convert to 0-based indices
+    *row -= 1;
+    *col = toupper(columnLetter) - 'A';
+
+    // Check if within valid range
+    if (*row < 0 || *row >= GRID_SIZE || *col < 0 || *col >= GRID_SIZE) 
+        return 0;
+
+    // Validation successful
+    return 1;
 }
 
 
-
-void performFire(Player *attacker, Player *defender, char *coord)
-{
+void performFire(Player *attacker, Player *defender, char *coord){
     int row, col;
-    if (sscanf(coord, "%c%d", &coord[0], &row) != 2)
-    {
+
+    if (validateAndParseCoord(coord, &row, &col) == 0){
         printf("Invalid coordinate format. You lose your turn.\n");
         return;
     }
-    row -= 1;
-    col = toupper(coord[0]) - 'A';
-
-    if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE)
-    {
-        printf("Invalid coordinates. You lose your turn.\n");
-        return;
-    }
-
+    
     GridCell *cell = &defender->grid[row][col];
 
-    if (cell->isHit)
-    {
+    if (cell->isHit){
         printf("You already targeted this location. You lose your turn.\n");
         return;
     }
 
     cell->isHit = 1;
 
-    if (cell->hasShip)
-    {
+    if (cell->hasShip){
         cell->display = '*';
         printf("Hit!\n");
         updateShipStatus(defender, row, col, attacker);
     }
-    else
-    {
+    else{
         cell->display = 'o';
         printf("Miss.\n");
     }
+    usleep(3000000);
 }
 
-void performRadar(Player *attacker, Player *defender, char *coord)
-{
-    int row, col;
-    if (sscanf(coord, "%c%d", &coord[0], &row) != 2)
-    {
-        printf("Invalid coordinate format. You lose your turn.\n");
-        return;
-    }
-    row -= 1;
-    col = toupper(coord[0]) - 'A';
 
-    if (row < 0 || row >= GRID_SIZE - 1 || col < 0 || col >= GRID_SIZE - 1)
-    {
-        printf("Invalid coordinates. You lose your turn.\n");
+void performRadar(Player *attacker, Player *defender, char *coord){
+    int row, col;
+
+    if (validateAndParseCoord(coord, &row, &col) == 0){
+        printf("Invalid coordinate format. You lose your turn.\n");
         return;
     }
 
     int found = 0;
-    for (int i = row; i <= row + 1; i++)
-    {
-        for (int j = col; j <= col + 1; j++)
-        {
+    for (int i = row; i <= row + 1; i++){
+        for (int j = col; j <= col + 1; j++){
             if (defender->grid[i][j].hasSmoke)
                 continue;
-            if (defender->grid[i][j].hasShip)
-            {
+            if (defender->grid[i][j].hasShip){
                 found = 1;
                 break;
             }
@@ -529,182 +537,142 @@ void performRadar(Player *attacker, Player *defender, char *coord)
             break;
     }
 
-    if (found)
-    {
+    if (found){
         printf("Enemy ships found.\n");
     }
-    else
-    {
+    else{
         printf("No enemy ships found.\n");
     }
     attacker->radarCount--;
+    usleep(3000000);
 }
 
 
 
-void performSmoke(Player *player, char *coord)
-{
+void performSmoke(Player *player, char *coord){
     int row, col;
-    if (sscanf(coord, "%c%d", &coord[0], &row) != 2)
-    {
+
+    if (validateAndParseCoord(coord, &row, &col) == 0){
         printf("Invalid coordinate format. You lose your turn.\n");
         return;
     }
-    row -= 1;
-    col = toupper(coord[0]) - 'A';
 
-    if (row < 0 || row >= GRID_SIZE - 1 || col < 0 || col >= GRID_SIZE - 1)
-    {
-        printf("Invalid coordinates. You lose your turn.\n");
-        return;
-    }
-
-    for (int i = row; i <= row + 1; i++)
-    {
-        for (int j = col; j <= col + 1; j++)
-        {
+    for (int i = row; i <= row + 1; i++){ // smoke a 2x2 area
+        for (int j = col; j <= col + 1; j++){ 
             player->grid[i][j].hasSmoke = 1;
         }
     }
     player->smokeCount--;
     clearScreen();
     printf("Smoke screen deployed.\n");
+    usleep(3000000);
 }
 
 
-void performArtillery(Player *attacker, Player *defender, char *coord)
-{
+void performArtillery(Player *attacker, Player *defender, char *coord){
     int row, col;
-    if (sscanf(coord, "%c%d", &coord[0], &row) != 2)
-    {
+
+    if (validateAndParseCoord(coord, &row, &col) == 0){
         printf("Invalid coordinate format. You lose your turn.\n");
         return;
     }
-    row -= 1;
-    col = toupper(coord[0]) - 'A';
-
-    if (row < 0 || row >= GRID_SIZE - 1 || col < 0 || col >= GRID_SIZE - 1)
-    {
-        printf("Invalid coordinates. You lose your turn.\n");
-        return;
-    }
-
+    
     int hit = 0;
-    for (int i = row; i <= row + 1; i++)
-    {
-        for (int j = col; j <= col + 1; j++)
-        {
+    for (int i = row; i <= row + 1; i++){
+        for (int j = col; j <= col + 1; j++){
             GridCell *cell = &defender->grid[i][j];
-            if (!cell->isHit)
-            {
+            if (!cell->isHit){
                 cell->isHit = 1;
-                if (cell->hasShip)
-                {
+                if (cell->hasShip){
                     cell->display = '*';
                     updateShipStatus(defender, i, j, attacker);
                     hit = 1;
                 }
-                else
-                {
+                else{
                     cell->display = 'o';
                 }
             }
         }
     }
 
-    if (hit)
-    {
+    if (hit){
         printf("Artillery strike hit enemy ships!\n");
     }
-    else
-    {
+    else{
         printf("Artillery strike missed.\n");
     }
+    usleep(3000000);
 }
 
-void performTorpedo(Player *attacker, Player *defender, char *input)
-{
+void performTorpedo(Player *attacker, Player *defender, char *input){
     char rc = toupper(input[0]);
     int index;
     int hit = 0;
 
-    if (isalpha(rc))
-    {
+    if (isalpha(rc)){
         index = rc - 'A';
-        if (index < 0 || index >= GRID_SIZE)
-        {
+        if (index < 0 || index >= GRID_SIZE){
             printf("Invalid column. You lose your turn.\n");
             return;
         }
-        for (int i = 0; i < GRID_SIZE; i++)
-        {
+        for (int i = 0; i < GRID_SIZE; i++){
             GridCell *cell = &defender->grid[i][index];
-            if (!cell->isHit)
-            {
+            if (!cell->isHit){
                 cell->isHit = 1;
-                if (cell->hasShip)
-                {
+                if (cell->hasShip){
                     cell->display = '*';
                     updateShipStatus(defender, i, index, attacker);
                     hit = 1;
                 }
-                else
-                {
+                else{
                     cell->display = 'o';
                 }
             }
         }
     }
-    else
-    {
+    else{
         index = atoi(input) - 1;
-        if (index < 0 || index >= GRID_SIZE)
-        {
+        if (index < 0 || index >= GRID_SIZE){
             printf("Invalid row. You lose your turn.\n");
             return;
         }
-        for (int j = 0; j < GRID_SIZE; j++)
-        {
+
+        for (int j = 0; j < GRID_SIZE; j++){
+
             GridCell *cell = &defender->grid[index][j];
-            if (!cell->isHit)
-            {
+            if (!cell->isHit){
                 cell->isHit = 1;
-                if (cell->hasShip)
-                {
+                if (cell->hasShip){
                     cell->display = '*';
                     updateShipStatus(defender, index, j, attacker);
                     hit = 1;
                 }
-                else
-                {
+                else{
                     cell->display = 'o';
                 }
             }
         }
     }
 
-    if (hit)
-    {
+    if (hit){
         printf("Torpedo hit enemy ships!\n");
     }
-    else
-    {
+    else{
         printf("Torpedo missed.\n");
     }
+    usleep(3000000);
 }
 
-void updateShipStatus(Player *player, int row, int col, Player *attacker)
-{
-    for (int i = 0; i < NUM_SHIPS; i++)
-    {
+
+void updateShipStatus(Player *player, int row, int col, Player *attacker){
+    for (int i = 0; i < NUM_SHIPS; i++){
+
         Ship *ship = &player->ships[i];
-        for (int j = 0; j < ship->size; j++)
-        {
-            if (ship->coordinates[j][0] == row && ship->coordinates[j][1] == col)
-            {
+        for (int j = 0; j < ship->size; j++){
+
+            if (ship->coordinates[j][0] == row && ship->coordinates[j][1] == col){
                 ship->hits++;
-                if (ship->hits == ship->size && !ship->sunk)
-                {
+                if (ship->hits == ship->size && !ship->sunk){
                     ship->sunk = 1;
                     player->shipsSunk++;
                     printf("You sunk %s's %s!\n", player->name, ship->name);
@@ -716,40 +684,44 @@ void updateShipStatus(Player *player, int row, int col, Player *attacker)
     }
 }
 
-void unlockSpecialMoves(Player *defender, Player *attacker)
-{
+
+void unlockSpecialMoves(Player *defender, Player *attacker){
     attacker->smokeCount++;
 
-    if (defender->shipsSunk == 1)
-    {
+    if (defender->shipsSunk == 1){
         attacker->artilleryAvailable = 1;
         printf("%s has unlocked Artillery for the next turn!\n", attacker->name);
+        
     }
-    if (defender->shipsSunk == 3)
-    {
+    if (defender->shipsSunk == 3){
         attacker->torpedoAvailable = 1;
         printf("%s has unlocked Torpedo for the next turn!\n", attacker->name);
     }
+    usleep(3000000);
 }
 
-int checkWinCondition(Player *player)
-{
-    for (int i = 0; i < NUM_SHIPS; i++)
-    {
-        if (!player->ships[i].sunk)
-        {
+
+int checkWinCondition(Player *player){
+    for (int i = 0; i < NUM_SHIPS; i++){
+        if (!player->ships[i].sunk){
             return 0;
         }
     }
     return 1;
 }
 
-void gameLoop(Player *currentPlayer, Player *opponent, int trackingDifficulty)
-{
-    while (1)
-    {
-        if (!strncmp(opponent->name, "Bot", 3))
-        {
+void clearScreen(){
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
+
+void gameLoop(Player *currentPlayer, Player *opponent, int trackingDifficulty){
+    while (1){
+        if (!strncmp(opponent->name, "Bot", 3)){
             performMove(currentPlayer, opponent, trackingDifficulty);
             usleep(3000);
         }
@@ -757,8 +729,7 @@ void gameLoop(Player *currentPlayer, Player *opponent, int trackingDifficulty)
             BotPerformMove(currentPlayer, opponent, trackingDifficulty);
             usleep(3000);
         }
-        if (checkWinCondition(opponent))
-        {
+        if (checkWinCondition(opponent)){
             printf("\n%s wins the game!\n", currentPlayer->name);
             break;
         }
@@ -770,19 +741,9 @@ void gameLoop(Player *currentPlayer, Player *opponent, int trackingDifficulty)
     }
 }
 
-void clearScreen()
-{
-#ifdef _WIN32
-    system("cls");
-#else
-    system("clear");
-#endif
-}
 
-void clearInputBuffer()
-{
+
+void clearInputBuffer(){
     int c;
-    while ((c = getchar()) != '\n' && c != EOF)
-    {
-    }
+    while ((c = getchar()) != '\n' && c != EOF){}
 }
