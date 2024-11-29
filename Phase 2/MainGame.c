@@ -40,7 +40,7 @@ int main() {
     usleep(2500000);
     clearScreen();
 
-    gameLoop(currentPlayer, opponent, trackingDifficulty);     // the gameLoop method is under development
+    gameLoop(currentPlayer, opponent, trackingDifficulty);     
 
     return 0;
 }

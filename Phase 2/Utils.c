@@ -78,7 +78,6 @@ void initializePlayer(Player *player) {
 }
 
 
-
 void initializeBot(Player *bot) {
     strncpy(bot->name, "Bot", 3);
     initializeGrid(bot->grid);
@@ -137,6 +136,7 @@ void placeShips(Player *player){
     }
 }
 
+
 void BotPlaceShips(Player *bot){
     srand(time(NULL)); // seed the random number generator
 
@@ -182,7 +182,6 @@ int validateAndPlaceShip(GridCell grid[GRID_SIZE][GRID_SIZE], Ship *ship, int ro
         return 0;
     }
 
-
     // Check for any out of bounds problems
     if (row < 0 || col < 0 || row >= GRID_SIZE || col >= GRID_SIZE || row + dr * (ship->size - 1) >= GRID_SIZE || col + dc * (ship->size - 1) >= GRID_SIZE){
         return 0;
@@ -223,7 +222,6 @@ void updateShipStatus(Player *player, int row, int col, Player *attacker){
         }
     }
 }
-
 
 void unlockSpecialMoves(Player *defender, Player *attacker){
     attacker->smokeCount++;
