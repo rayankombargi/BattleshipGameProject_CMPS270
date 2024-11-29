@@ -100,7 +100,7 @@ int main() {
     clearScreen();
 
     BotPlaceShips(&bot);
-    Sleep(7000);
+    Sleep(1000);
     clearScreen();
 
     Player *currentPlayer, *opponent;
@@ -459,7 +459,7 @@ void BotDecision(Player *attacker, Player *defender, Memory *mem) {
     srand(time(NULL));
 
     enum command {Fire, Radar, Smoke, Artillery, Torpedo} mve;
-    if (!mem->hitFound) {
+    if (mem->hitFound == 0) {
 
         if (attacker->radarCount > 0) {
             int action = rand() % 4;
@@ -483,6 +483,8 @@ void BotDecision(Player *attacker, Player *defender, Memory *mem) {
 
         char coord[2];  sprintf(coord, "%c%d", letter, row+1);
         
+
+        // char coord[2];  sprintf(coord, "%c%d", 'D', 5); // for testing
         if (mve == Radar) {
             printf("Radar %s\n", coord);
             performRadar(attacker, defender, coord, mem);
@@ -497,14 +499,112 @@ void BotDecision(Player *attacker, Player *defender, Memory *mem) {
             } //else 
                 //SearchRadar(attacker, defender, mem->Target, mem);
         } else if (mem->dec == FireSearch) {
-            // SearchFire
+            SearchFire(attacker, defender, mem->Target, mem);
         }
             
     }
 
 }
 void SearchFire(Player *attacker, Player *defender, char *coord, Memory *mem) {
-    // To be continued
+
+    char localCoord[2];
+    char letter;
+    int row = coord[1]-1; int col = coord[0]-64-1;
+
+    if (mem->i < 5) {
+        mem->i = mem->i + 1;
+        if (mem->dir == Down) {
+            if (row + mem->i >= 10) {
+                mem->i = 1;
+                mem->dir = Up;
+                row = row - mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+            else {
+                row = row + mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+        }
+        if (mem->dir == Up) {
+            if (row - mem->i >= 10) {
+                mem->i = 1;
+                mem->dir = Down;
+                row = row + mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+            else {
+                row = row - mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+        }
+        if (mem->dir == Right) {
+            if (col + mem->i >= 10) {
+                mem->i = 1;
+                mem->dir = Left;
+                col = col - mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+            else {
+                col = col + mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+        }
+        if (mem->dir == Left) {
+            if (col - mem->i >= 10) {
+                mem->i = 1;
+                mem->dir = Right;
+                col = col + mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+            else {
+                col = col - mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+        }
+    } else {
+        mem->i = 1;
+        if (mem->dir == Down) {
+            if (row + mem->i < 10) {
+                mem->dir = Up;
+                row = row - mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+            else if (col + mem->i < 10) {
+                mem->dir = Right;
+                col = col + mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+            else {
+                mem->dir = Left;
+                col = col - mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+        }
+        if (mem->dir == Up) {
+            if (col + mem->i < 10) {
+                mem->dir = Right;
+                col = col + mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+            else {
+                mem->dir = Left;
+                col = col - mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+        }
+        if (mem->dir == Right) {
+            if (col - mem->i > 0) {
+                mem->dir = Left;
+                col = col - mem->i;
+                letter = (char)(64 + col+1); // ASCII conversion of the value of the col integer into its corresponding character
+            }
+        }
+
+    }
+
+    sprintf(localCoord, "%c%d", letter, mem->row + 1);
+    printf("Fire %s\n", localCoord);
+    performFire(attacker, defender, localCoord, mem);
 }
 
 void SearchRadar(Player *attacker, Player *defender, char *coord, Memory *mem) {
@@ -559,6 +659,23 @@ void performFire(Player *attacker, Player *defender, char *coord, Memory *mem)
     if (cell->isHit)
     {
         printf("You already targeted this location. You lose your turn.\n");
+        if (strcmp(attacker->name, "Bot") == 0) {
+            if (mem->dec == FireSearch && mem->hitFound == 1) {
+                if (mem->i > 0)
+                    mem->i == 0;
+                if (mem->j > 0)
+                    mem->j == 0;
+                if (mem->dir == Down)
+                    mem->dir = Up;
+                if (mem->dir == Up)
+                    mem->dir = Right;
+                if (mem->dir == Right)
+                    mem->dir = Left;
+                if (mem->dir == Left) {
+                    mem->hitFound = 0;
+                }
+            }
+        }
         return;
     }
 
@@ -569,17 +686,36 @@ void performFire(Player *attacker, Player *defender, char *coord, Memory *mem)
         cell->display = '*';
         printf("Hit!\n");
         updateShipStatus(defender, row, col, attacker);
-        if (strcmp(attacker->name, "bot") == 0)
+        if (strcmp(attacker->name, "Bot") == 0)
         {
-            mem->hitFound = 1;
-            strncpy(mem->Target, coord, sizeof(coord));
-            mem->dec = FireSearch;
+            if (mem->hitFound == 0) {
+                mem->hitFound = 1;
+                strncpy(mem->Target, coord, sizeof(coord));
+                mem->dec = FireSearch;
+            } 
         }
     }
     else
     {
         cell->display = 'o';
         printf("Miss.\n");
+        if (strcmp(attacker->name, "Bot") == 0) {
+            if (mem->dec == FireSearch && mem->hitFound == 1) {
+                if (mem->i > 0)
+                    mem->i == 0;
+                if (mem->j > 0)
+                    mem->j == 0;
+                if (mem->dir == Down)
+                    mem->dir = Up;
+                if (mem->dir == Up)
+                    mem->dir = Right;
+                if (mem->dir == Right)
+                    mem->dir = Left;
+                if (mem->dir == Left) {
+                    mem->hitFound = 0;
+                }
+            }
+        }
     }
 }
 
@@ -622,9 +758,11 @@ void performRadar(Player *attacker, Player *defender, char *coord, Memory *mem)
         printf("Enemy ships found.\n");
         if (strcmp(attacker->name, "bot") == 0)
         {
-            mem->hitFound = 1;
-            strncpy(mem->Target, coord, sizeof(coord));
-            mem->dec = RadarSearch;
+            if (mem->hitFound == 0) {
+                mem->hitFound = 1;
+                strncpy(mem->Target, coord, sizeof(coord));
+                mem->dec = RadarSearch;
+            }
         }
     }
     else
@@ -706,6 +844,11 @@ void performArtillery(Player *attacker, Player *defender, char *coord, Memory *m
     if (hit)
     {
         printf("Artillery strike hit enemy ships!\n");
+        if (strcmp(attacker->name, "Bot") == 0){
+            if (mem->hitFound == 1) {
+                mem->hitFound = 0;
+            }
+        }
     }
     else
     {
