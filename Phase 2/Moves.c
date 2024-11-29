@@ -132,25 +132,26 @@ void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty) 
     displayGrid(defender->grid, trackingDifficulty);
     showMoveOptions(attacker);
 
-
     if (findNextTarget(&row, &col)) {
-        if (attacker->torpedoAvailable){
+        if (attacker->torpedoAvailable) {
             snprintf(input, sizeof(input), "Torpedo %c%d", 'A' + col, row + 1);
-        }
-        else if (attacker->artilleryAvailable){
+        } else if (attacker->artilleryAvailable) {
             snprintf(input, sizeof(input), "Artillery %c%d", 'A' + col, row + 1);
-        }
-        else{
+        } else {
             snprintf(input, sizeof(input), "Fire %c%d", 'A' + col, row + 1);
         }
-    } 
-    else {
-        chooseRandomTarget(&row, &col);
-        if (attacker->radarCount>0){
+    } else {
+        if (attacker->radarCount > 0) {
+            do {
+                row = rand() % GRID_SIZE;
+                col = rand() % GRID_SIZE;
+            } while (isRadarScanned(attacker, row, col));
             snprintf(input, sizeof(input), "Radar %c%d", 'A' + col, row + 1);
-
-        }
-        else{
+        } else {
+            do {
+                row = rand() % GRID_SIZE;
+                col = rand() % GRID_SIZE;
+            } while (defender->grid[row][col].isHit);
             snprintf(input, sizeof(input), "Fire %c%d", 'A' + col, row + 1);
         }
     }
@@ -158,32 +159,33 @@ void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty) 
     printf("Bot chooses: %s\n", input);
     usleep(1000);
 
-    // Execute the move
     if (strncmp(input, "Fire", 4) == 0) {
         char coord[10];
         sscanf(input, "Fire %s", coord);
         performFire(attacker, defender, coord);
         updateBotState(defender, row, col, defender->grid[row][col].hasShip);
-    } 
-    else if (strncmp(input, "Radar", 5) == 0 && attacker->radarCount > 0) {
+    } else if (strncmp(input, "Radar", 5) == 0 && attacker->radarCount > 0) {
         char coord[10];
         sscanf(input, "Radar %s", coord);
         performRadar(attacker, defender, coord);
         attacker->radarCount--;
-    } 
-    else if (strncmp(input, "Smoke", 5) == 0 && attacker->smokeCount > 0) {
+
+        if (attacker->RadarHitsCount < MAX_RADAR_HITS) {
+            attacker->RadarHistory[attacker->RadarHitsCount].row = row;
+            attacker->RadarHistory[attacker->RadarHitsCount].col = col;
+            attacker->RadarHitsCount++;
+        }
+    } else if (strncmp(input, "Smoke", 5) == 0 && attacker->smokeCount > 0) {
         char coord[10];
         sscanf(input, "Smoke %s", coord);
         performSmoke(attacker, coord);
         attacker->smokeCount--;
-    } 
-    else if (strncmp(input, "Artillery", 9) == 0 && attacker->artilleryAvailable) {
+    } else if (strncmp(input, "Artillery", 9) == 0 && attacker->artilleryAvailable) {
         char coord[10];
         sscanf(input, "Artillery %s", coord);
         performArtillery(attacker, defender, coord);
         attacker->artilleryAvailable = 0;
-    } 
-    else if (strncmp(input, "Torpedo", 7) == 0 && attacker->torpedoAvailable) {
+    } else if (strncmp(input, "Torpedo", 7) == 0 && attacker->torpedoAvailable) {
         char param[10];
         sscanf(input, "Torpedo %s", param);
         performTorpedo(attacker, defender, param);
@@ -191,19 +193,18 @@ void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty) 
     } else {
         printf("Invalid move or unavailable command. Bot loses its turn.\n");
     }
-    do{
-        row=rand()%10;
-        col=rand()%10;
+
+    if (attacker->radarCount > 0) {
+        botUseRadar(attacker, defender);
     }
-    while (isRadarScanned(attacker,row,col));
-    botUseRadar(attacker,row,col);
 }
 
+
 int isRadarScanned(Player *attacker, int row, int col) {
-    for(int i=0;i<attacker->RadarHitsCount; i++)
-    {
-        if(attacker->RadarHistory[i].row==row && attacker->RadarHistory[i].col == col)
-        return 1; 
+    for (int i = 0; i < attacker->RadarHitsCount; i++) {
+        if (attacker->RadarHistory[i].row == row && attacker->RadarHistory[i].col == col) {
+            return 1;
+        }
     }
     return 0;
 }
@@ -215,15 +216,12 @@ int validateAndParseCoord(const char *coord, int *row, int *col) {
     if (sscanf(coord, "%c%d", &columnLetter, row) != 2) 
         return 0;
 
-    // Convert to 0-based indices
     *row -= 1;
     *col = toupper(columnLetter) - 'A';
 
-    // Check if within valid range
     if (*row < 0 || *row >= GRID_SIZE || *col < 0 || *col >= GRID_SIZE) 
         return 0;
 
-    // Validation successful
     return 1;
 }
 
@@ -406,25 +404,25 @@ void performTorpedo(Player *attacker, Player *defender, char *input){
     usleep(10000);
 }
 
-void botUseRadar(Player *bot, int row, int col){
-    for(int i=0; i< bot->RadarHitsCount;i++){
-        if(bot->RadarHistory[i].row==row && bot->RadarHistory[i].col==col){
-            printf("Area already scanned");
-            return;
+void botUseRadar(Player *bot,Player*attacker){
+    if (bot->radarCount > 0) {
+        int row = rand() % GRID_SIZE;
+        int col = rand() % GRID_SIZE;
+
+        printf("Bot uses Radar at location %c%d\n", 'A' + col, row + 1);
+        usleep(10000);
+
+        
+        if (attacker->grid[row][col].hasShip) {
+            printf("Radar detects a ship at %c%d\n", 'A' + col, row + 1);
+        } else {
+            printf("Radar does not detect any ships at %c%d\n", 'A' + col, row + 1);
         }
-    }
-    if(bot->RadarHitsCount<MAX_RADAR_HITS){
-        bot->RadarHistory[bot->RadarHitsCount].row = row;
-        bot->RadarHistory[bot->RadarHitsCount].col = col;
-        bot->RadarHitsCount++;
-    }
 
-    if(bot->grid[row][col].hasShip){
-        printf("Radar found a ship at %c%d\n",col+ 'A',row+1);
+        bot->radarCount--;  
+    } else {
+        printf("Bot has no more Radar sweeps available.\n");
     }
-    else
-    printf("Radar did not find a ship at %c%d\n",col+ 'A',row+1);
-
 }
 
 

@@ -50,6 +50,7 @@ void initializePlayerAttributes(Player *player){
     player->artilleryAvailable = 0;
     player->torpedoAvailable = 0;
     player->shipsSunk = 0;
+    player->RadarHitsCount=0;
 }
 
 void initializePlayer(Player *player) { 
@@ -83,6 +84,7 @@ void initializeBot(Player *bot) {
     strncpy(bot->name, "Bot", 3);
     initializeGrid(bot->grid);
     initializePlayerAttributes(bot);
+    bot->radarCount=MAX_RADAR_SWEEPS;
     initializeBotState();
 
     const char *shipNames[NUM_SHIPS] = {"Carrier", "Battleship", "Destroyer", "Submarine"};
@@ -261,6 +263,9 @@ void clearScreen(){
 void gameLoop(Player *currentPlayer, Player *opponent, int trackingDifficulty){
     while (1){
         if (!strncmp(opponent->name, "Bot", 3)){
+            if(currentPlayer->radarCount>0){
+                botUseRadar(currentPlayer,opponent);
+            }
             performMove(currentPlayer, opponent, trackingDifficulty);
             usleep(3000);
         }

@@ -84,7 +84,7 @@ void performRadar(Player *attacker, Player *defender, char *coord);
 void performSmoke(Player *player, char *coord);
 void performArtillery(Player *attacker, Player *defender, char *coord);
 void performTorpedo(Player *attacker, Player *defender, char *input);
-void botUseRadar(Player *bot, int row, int col);
+void botUseRadar(Player *bot,Player*attacker);
 void updateShipStatus(Player *player, int row, int col, Player *attacker);
 void unlockSpecialMoves(Player *defender, Player *attacker);
 
