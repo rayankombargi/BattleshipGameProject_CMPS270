@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/carl/Desktop/BattleshipGameProject_CMPS270/Phase 2/output/MainGame'
+relocations:     []
+...
