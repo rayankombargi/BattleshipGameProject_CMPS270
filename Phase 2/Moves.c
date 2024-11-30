@@ -77,9 +77,11 @@ void Move(Player *attacker, Player *defender, char *input) {
                     performSmoke(attacker, coord);
                 } else {
                     printf("Invalid command format. You lose your turn.\n");
+                    usleep(300000);
                 }
             } else {
                 printf("No smoke screens available. You lose your turn.\n");
+                usleep(300000);
             }
             break;
         }
@@ -92,9 +94,11 @@ void Move(Player *attacker, Player *defender, char *input) {
                     attacker->artilleryAvailable = 0; // Can use only once
                 } else {
                     printf("Invalid command format. You lose your turn.\n");
+                    usleep(300000);
                 }
             } else {
                 printf("Artillery not available. You lose your turn.\n");
+                usleep(300000);
             }
             break;
         }
@@ -105,11 +109,14 @@ void Move(Player *attacker, Player *defender, char *input) {
                 if (sscanf(input, "Torpedo %s", param) == 1) {
                     performTorpedo(attacker, defender, param);
                     attacker->torpedoAvailable = 0; // Can use only once
+
                 } else {
                     printf("Invalid command format. You lose your turn.\n");
+                    usleep(300000);
                 }
             } else {
                 printf("Torpedo not available. You lose your turn.\n");
+                usleep(300000);
             }
             break;
         }
@@ -117,6 +124,7 @@ void Move(Player *attacker, Player *defender, char *input) {
         case INVALID:
         default: {
             printf("Invalid command. You lose your turn.\n");
+            usleep(300000);
             break;
         }
     }
@@ -132,27 +140,23 @@ void BotPerformMove(Player *attacker, Player *defender, int trackingDifficulty) 
     displayGrid(defender->grid, trackingDifficulty);
     showMoveOptions(attacker);
 
+    int foundTarget = 0;
+    for (int i = 0; i < GRID_SIZE; i++) {
+        for (int j = 0; j < GRID_SIZE; j++) {
+            if (attacker->botState.radarMemory.detectedShips[i][j] == 1 && attacker->botState.hits[i][j] == -1) {
+                row = i;
+                col = j;
+                snprintf(input, sizeof(input), "Fire %c%d", 'A' + col, row + 1);
+                foundTarget = 1;
+                break;
+            }
+        }
+        if (foundTarget) break;  
+    }
 
-    if (findNextTarget(&row, &col)) {
-        if (attacker->torpedoAvailable){
-            snprintf(input, sizeof(input), "Torpedo %c%d", 'A' + col, row + 1);
-        }
-        else if (attacker->artilleryAvailable){
-            snprintf(input, sizeof(input), "Artillery %c%d", 'A' + col, row + 1);
-        }
-        else{
-            snprintf(input, sizeof(input), "Fire %c%d", 'A' + col, row + 1);
-        }
-    } 
-    else {
+    if (!foundTarget) {
         chooseRandomTarget(&row, &col);
-        if (attacker->radarCount>0){
-            snprintf(input, sizeof(input), "Radar %c%d", 'A' + col, row + 1);
-
-        }
-        else{
-            snprintf(input, sizeof(input), "Fire %c%d", 'A' + col, row + 1);
-        }
+        snprintf(input, sizeof(input), "Fire %c%d", 'A' + col, row + 1);
     }
 
     printf("Bot chooses: %s\n", input);
@@ -267,9 +271,11 @@ void performRadar(Player *attacker, Player *defender, char *coord){
 
     if (found){
         printf("Enemy ships found.\n");
+        attacker->botState.radarMemory.detectedShips[row][col] = 1;
     }
     else{
         printf("No enemy ships found.\n");
+        attacker->botState.radarMemory.detectedShips[row][col] = 0;
     }
     attacker->radarCount--;
     usleep(3000000);

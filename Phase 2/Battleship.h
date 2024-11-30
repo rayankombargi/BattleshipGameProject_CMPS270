@@ -13,6 +13,7 @@
 #define EASY 0
 #define HARD 1
 #define MAX_RADAR_SWEEPS 3
+#define RADAR_MEMORY_SIZE 10  
 
 enum Command {FIRE, RADAR, SMOKE, ARTILLERY, TORPEDO,INVALID};
 
@@ -32,6 +33,19 @@ typedef struct {
 } GridCell;
 
 typedef struct {
+    int detectedShips[RADAR_MEMORY_SIZE][RADAR_MEMORY_SIZE]; // 1 if a ship was detected, 0 otherwise
+} RadarMemory;
+
+typedef struct {
+    int hits[GRID_SIZE][GRID_SIZE]; // 1: hit, 0: miss, -1: unexplored
+    int pendingHits[GRID_SIZE][GRID_SIZE]; // 1: needs follow-up, 0: no follow-up needed
+    RadarMemory radarMemory;
+} BotState;
+
+BotState botState;
+
+
+typedef struct {
     char name[50];
     GridCell grid[GRID_SIZE][GRID_SIZE];
     Ship ships[NUM_SHIPS];
@@ -40,14 +54,8 @@ typedef struct {
     int artilleryAvailable;
     int torpedoAvailable;
     int shipsSunk;
+    BotState botState;
 } Player;
-
-typedef struct {
-    int hits[GRID_SIZE][GRID_SIZE]; // 1: hit, 0: miss, -1: unexplored
-    int pendingHits[GRID_SIZE][GRID_SIZE]; // 1: needs follow-up, 0: no follow-up needed
-} BotState;
-
-BotState botState;
 
 
 void initializeGrid(GridCell grid[GRID_SIZE][GRID_SIZE]);
