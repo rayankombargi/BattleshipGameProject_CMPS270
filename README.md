@@ -2,7 +2,7 @@ This is a dynamic implementation of the classic Battleship game, featuring a 10x
 Sweeps, Artillery Strikes, Torpedoes, and Smoke Screens. The game includes both a Bot version and a 2-player version,
 with two difficulty levels: Easy and Hard. The objective is to sink your opponent’s ships before they sink yours.
 
-Features
+Features  
 Game Modes:
 Single-player: Play against an AI bot with two difficulty levels (Easy and Hard)
 Two-player: Play with a friend on the same machine, alternating turns
