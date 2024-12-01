@@ -4,7 +4,7 @@ with two difficulty levels: Easy and Hard. The objective is to sink your opponen
 
 Features
 Game Modes:
-Sinle-player: Play against an AI bot with two difficulty levels (Easy and Hard)
+Single-player: Play against an AI bot with two difficulty levels (Easy and Hard)
 Two-player: Play with a friend on the same machine, alternating turns
 
 Gameplay Mechanics:
