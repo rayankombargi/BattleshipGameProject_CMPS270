@@ -20,11 +20,7 @@ The Battleship game consists of two players (one human, one bot) who take turns 
 - **Torpedo:** Targets an entire row or column.
 
 ## How to Run the Game
-   git clone https://github.com/rayankombargi/TheFourMusketeers.git
-   cd TheFourMusketeers
-   g++ -o battleship main.cpp
-   ./battleship
-
+To run Phase 1 of the program, simply execute Phase1.c  
 The instructions for running Phase 2 specify that `MainGame.c` (located in the Phase2 folder) should be used instead of `Phase1.c`.
 
 
