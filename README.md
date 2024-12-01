@@ -26,30 +26,30 @@ to attack and defend
 How to Play
 1-Player Mode (Against Bot)
 
-    Choose the difficulty level (Easy or Hard)
-    Place your ships on the 10x10 grid
-    Take turns with the bot to guess the location of the 
-    opponent's ships
-    Use special moves like Radar Sweeps, Artillery Strikes, 
-    Torpedoes, and Smoke Screens
-    The first player to sink all of the opponent’s ships wins
+Choose the difficulty level (Easy or Hard)
+Place your ships on the 10x10 grid
+Take turns with the bot to guess the location of the 
+opponent's ships
+Use special moves like Radar Sweeps, Artillery Strikes, 
+Torpedoes, and Smoke Screens
+The first player to sink all of the opponent’s ships wins
 
 2-Player Mode (Local Multiplayer)
 
-    Each player takes turns placing their ships on the 10x10 grid
-    Players then alternate turns guessing the opponent’s ship 
-    locations
-    Special moves can be used during gameplay to gain an advantage
-    The first player to sink all of the opponent’s ships wins
+Each player takes turns placing their ships on the 10x10 grid
+Players then alternate turns guessing the opponent’s ship 
+locations
+Special moves can be used during gameplay to gain an advantage
+The first player to sink all of the opponent’s ships wins
 
 Game Rules
 
-    Players take turns guessing the coordinates of the opponent's 
-    ships
-    Ships are placed horizontally or vertically on the grid
-    Special moves are limited per game and provide strategic 
-    advantages
-    The game ends when one player has sunk all the opponent’s ships
+Players take turns guessing the coordinates of the opponent's 
+ships
+Ships are placed horizontally or vertically on the grid
+Special moves are limited per game and provide strategic 
+advantages
+The game ends when one player has sunk all the opponent’s ships
 
 Game Structure:
 
@@ -64,7 +64,7 @@ Game ends when all the ships are sunk
 
 Strategies used:
 
-      1. Offensive Strategy:
+1. Offensive Strategy:
 
 Random firing occurs to be able to identify the location of the 
 placed ships 
@@ -75,7 +75,7 @@ of a hit
 Torpedo target a whole row or column which is useful for when you 
 want to target a big ship
 
-      2. Defensive Strategy:
+2. Defensive Strategy:
 
 Place you ships away from each other to avoid being hit by the  
 Artillery
@@ -84,7 +84,7 @@ Torpedo
 Try using smoke screens to hinder the radar sweeps that the 
 attacker might use
      
-      3. Bot Strategies:
+3. Bot Strategies:
 
 Bot starts out with random moves and they also avoid pre targeted 
 areas
