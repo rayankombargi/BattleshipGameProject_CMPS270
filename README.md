@@ -31,36 +31,31 @@ The first player to sink all of the opponent’s ships wins
   
 2-Player Mode (Local Multiplayer)  
   
-Each player takes turns placing their ships on the 10x10 grid
-Players then alternate turns guessing the opponent’s ship 
-locations
-Special moves can be used during gameplay to gain an advantage
-The first player to sink all of the opponent’s ships wins
-
-Game Rules
-
-Players take turns guessing the coordinates of the opponent's 
-ships
-Ships are placed horizontally or vertically on the grid
-Special moves are limited per game and provide strategic 
-advantages
-The game ends when one player has sunk all the opponent’s ships
-
-Game Structure:
-
-The grid starts out as an empty (~) 10x10 grid
-The gird tracks the hits (*) and misses (o)  depending on the 
-level selected by the user
-Each player has 4 types of ships of different sizes (5,4,3,2). 
-Ships also have orientation
-In the game the players turn alternate after each move (valid or 
-invalid)
-Game ends when all the ships are sunk
-
-Strategies used:
-
-1. Offensive Strategy:
-
+Each player takes turns placing their ships on the 10x10 grid  
+Players then alternate turns guessing the opponent’s ship locations  
+Special moves can be used during gameplay to gain an advantage  
+The first player to sink all of the opponent’s ships wins  
+  
+Game Rules  
+  
+Players take turns guessing the coordinates of the opponent's ships  
+Ships are placed horizontally or vertically on the grid  
+Special moves are limited per game and provide strategic advantages  
+The game ends when one player has sunk all the opponent’s ships  
+  
+Game Structure:  
+  
+The grid starts out as an empty (~) 10x10 grid  
+The gird tracks the hits (*) and misses (o)  depending on the level selected by the user  
+Each player has 4 types of ships of different sizes (5,4,3,2).   
+Ships also have orientation (vertical or horizontal)  
+In the game the players turn alternate after each move (valid or invalid)  
+Game ends when all the ships are sunk  
+  
+Strategies used:  
+  
+1. Offensive Strategy:  
+  
 Random firing occurs to be able to identify the location of the 
 placed ships 
 After targeting a ship and hitting it we fire shots adjacent to it 
